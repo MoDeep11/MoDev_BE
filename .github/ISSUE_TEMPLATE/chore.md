@@ -1,3 +1,10 @@
+---
+name: Chore
+about: 문서, 설정, CI/CD 등 유지보수 작업
+title: "[CHORE] "
+labels: chore
+---
+
 ## 📌 작업 내용
 
 <!-- 어떤 작업인지 작성해주세요 -->
