@@ -1,0 +1,30 @@
+{
+  "name": "modev",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MoDeep11/MoDev_BE.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MoDeep11/MoDev_BE/issues"
+  },
+  "homepage": "https://github.com/MoDeep11/MoDev_BE#readme",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.kt": "bash -c './gradlew ktlintFormat' && git add",
+    "*.kts": "bash -c './gradlew ktlintFormat' && git add"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0"
+  }
+}
