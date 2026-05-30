@@ -3,7 +3,7 @@ name: Feature Request
 about: 새로운 기능을 제안합니다.
 title: "[FEAT] "
 labels: feature
--------------
+---
 
 ## ✨ 기능 설명
 
