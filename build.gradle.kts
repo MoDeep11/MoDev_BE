@@ -3,6 +3,7 @@ plugins {
     kotlin("plugin.spring") version "1.9.25"
     id("org.springframework.boot") version "3.5.14"
     id("io.spring.dependency-management") version "1.1.7"
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
     kotlin("plugin.jpa") version "1.9.25"
 }
 
@@ -23,24 +24,45 @@ repositories {
 extra["sentryVersion"] = "8.27.0"
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    // kotlin
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
-    implementation("io.sentry:sentry-spring-boot-starter-jakarta")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
+
+    // spring mvc
+    implementation("org.springframework.boot:spring-boot-starter-web")
+
+    // spring webflux
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+    // jpa
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
+    // redis
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
+    // postgresql
     runtimeOnly("org.postgresql:postgresql")
+
+    // security
+    implementation("org.springframework.boot:spring-boot-starter-security")
+
+    // sentry
+    implementation("io.sentry:sentry-spring-boot-starter-jakarta")
+
+    // swagger
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16")
+
+    // devtools
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
+
+    // test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
     testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
