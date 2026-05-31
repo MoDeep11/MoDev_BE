@@ -30,6 +30,11 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
+    // spring
+    implementation("org.springframework.retry:spring-retry")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+
     // spring mvc
     implementation("org.springframework.boot:spring-boot-starter-web")
 
