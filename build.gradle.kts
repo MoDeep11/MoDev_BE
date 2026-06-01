@@ -62,6 +62,9 @@ dependencies {
     // sentry
     implementation("io.sentry:sentry-spring-boot-starter-jakarta")
 
+    // logging
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.7")
+
     // devtools
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
