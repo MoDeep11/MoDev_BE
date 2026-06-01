@@ -95,19 +95,6 @@ paths:
                 error:
                   code: GENERATE_NOT_FOUND
                   message: 생성 결과를 찾을 수 없거나 만료되었습니다.
-        '409':
-          description: 프로젝트명 중복
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                success: false
-                data: null
-                error:
-                  code: PROJECT_NAME_DUPLICATE
-                  message: 이미 사용 중인 프로젝트명입니다.
-
     get:
       tags:
         - Projects
@@ -334,19 +321,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '409':
-          description: 프로젝트명 중복
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                success: false
-                data: null
-                error:
-                  code: PROJECT_NAME_DUPLICATE
-                  message: 이미 사용 중인 프로젝트명입니다.
-
   /projects/{projectId}/stacks:
     patch:
       tags:
