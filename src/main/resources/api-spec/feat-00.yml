@@ -1,0 +1,622 @@
+openapi: 3.0.3
+info:
+  title: API Specification - FEAT-0 인증
+  description: |
+    로그인 / 회원가입 / 이메일 인증 / 토큰 재발급 API 명세서
+
+    ### 토큰 정책
+    - **액세스 토큰**: 응답 바디로 전달, 만료 시간 1시간
+    - **리프레시 토큰**: HttpOnly 쿠키로 전달, 만료 시간 14일
+    - **Token Rotation**: 액세스 토큰 재발급 시 리프레시 토큰도 함께 재발급되며, 기존 리프레시 토큰은 즉시 무효화된다.
+    - 이미 사용된 리프레시 토큰으로 재요청이 들어올 경우 탈취 시도로 간주하고 해당 계정의 전체 세션을 강제 만료한다.
+  version: 1.0.0
+
+servers:
+  - url: https://api.{serviceDomain}.com
+    description: Production
+    variables:
+      serviceDomain:
+        default: example.com
+
+tags:
+  - name: Auth
+    description: 인증 관련 API (회원가입, 로그인, 로그아웃, 토큰 재발급, 이메일 인증)
+
+paths:
+
+  /auth/signup:
+    post:
+      tags:
+        - Auth
+      summary: 회원가입
+      description: |
+        이메일과 비밀번호로 신규 계정을 생성한다.
+        가입 완료 시 인증 이메일이 자동 발송되며, 이메일 인증 전까지 일부 기능이 제한된다.
+      operationId: signup
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            example:
+              email: user@example.com
+              password: Password1!
+              passwordConfirm: Password1!
+      responses:
+        '201':
+          description: 회원가입 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SignupData'
+              example:
+                success: true
+                data:
+                  userId: user_123
+                  email: user@example.com
+                  status: UNVERIFIED
+                error: null
+        '400':
+          description: 입력값 유효성 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidPasswordFormat:
+                  summary: 비밀번호 형식 오류
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: INVALID_PASSWORD_FORMAT
+                      message: 비밀번호는 최소 8자, 영문+숫자+특수문자 조합이어야 합니다.
+                passwordMismatch:
+                  summary: 비밀번호 불일치
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: PASSWORD_MISMATCH
+                      message: 비밀번호가 일치하지 않습니다.
+        '409':
+          description: 이메일 중복
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: EMAIL_ALREADY_EXISTS
+                  message: 이미 사용 중인 이메일입니다.
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: 로그인
+      description: |
+        이메일과 비밀번호로 인증한다.
+        성공 시 액세스 토큰은 응답 바디로, 리프레시 토큰은 HttpOnly 쿠키로 내려보낸다.
+        로그인 실패 5회 이상 시 30분간 계정이 잠긴다.
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: user@example.com
+              password: Password1!
+      responses:
+        '200':
+          description: 로그인 성공
+          headers:
+            Set-Cookie:
+              description: 리프레시 토큰 (HttpOnly 쿠키)
+              schema:
+                type: string
+                example: refreshToken=eyJhbGci...; HttpOnly; Secure; SameSite=Strict; Path=/auth/token/refresh
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginData'
+              example:
+                success: true
+                data:
+                  accessToken: eyJhbGci...
+                  tokenType: Bearer
+                  expiresIn: 3600
+                  user:
+                    userId: user_123
+                    email: user@example.com
+                    status: ACTIVE
+                error: null
+        '401':
+          description: 이메일 또는 비밀번호 불일치
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: INVALID_CREDENTIALS
+                  message: 이메일 또는 비밀번호가 올바르지 않습니다.
+        '403':
+          description: 이메일 미인증 계정
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: EMAIL_NOT_VERIFIED
+                  message: 이메일 인증이 필요합니다.
+        '423':
+          description: 계정 잠금
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: ACCOUNT_LOCKED
+                  message: 로그인 시도가 너무 많습니다. 30분 후 다시 시도해주세요.
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: 로그아웃
+      description: |
+        현재 세션의 리프레시 토큰을 무효화한다.
+        클라이언트는 저장된 액세스 토큰을 삭제해야 한다.
+      operationId: logout
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 로그아웃 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data: null
+                error: null
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/token/refresh:
+    post:
+      tags:
+        - Auth
+      summary: 액세스 토큰 및 리프레시 토큰 재발급 (Token Rotation)
+      description: |
+        쿠키의 리프레시 토큰을 사용하여 액세스 토큰과 리프레시 토큰을 함께 재발급한다.
+
+        ### Token Rotation 정책
+        - 요청 시 기존 리프레시 토큰은 즉시 무효화된다.
+        - 새 액세스 토큰은 응답 바디로, 새 리프레시 토큰은 HttpOnly 쿠키로 내려보낸다.
+        - 이미 사용된 리프레시 토큰으로 재요청이 감지되면 해당 계정의 전체 세션을 강제 만료한다.
+      operationId: refreshToken
+      security: []
+      parameters:
+        - in: cookie
+          name: refreshToken
+          required: true
+          schema:
+            type: string
+          description: 리프레시 토큰 (HttpOnly 쿠키)
+      responses:
+        '200':
+          description: 토큰 재발급 성공
+          headers:
+            Set-Cookie:
+              description: 새 리프레시 토큰 (HttpOnly 쿠키). Path=/auth/token/refresh로 제한하여 다른 API 요청에 포함되지 않도록 한다.
+              schema:
+                type: string
+                example: refreshToken=eyJhbGci...; HttpOnly; Secure; SameSite=Strict; Path=/auth/token/refresh
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/TokenRefreshData'
+              example:
+                success: true
+                data:
+                  accessToken: eyJhbGci...
+                  tokenType: Bearer
+                  expiresIn: 3600
+                error: null
+        '401':
+          description: 리프레시 토큰 오류
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                expired:
+                  summary: 리프레시 토큰 만료
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: REFRESH_TOKEN_EXPIRED
+                      message: 리프레시 토큰이 만료되었습니다. 다시 로그인해주세요.
+                invalid:
+                  summary: 유효하지 않은 리프레시 토큰
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: REFRESH_TOKEN_INVALID
+                      message: 유효하지 않은 리프레시 토큰입니다.
+                reused:
+                  summary: 리프레시 토큰 재사용 감지 (탈취 의심)
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: REFRESH_TOKEN_REUSED
+                      message: 보안 이상이 감지되어 전체 세션이 만료되었습니다. 다시 로그인해주세요.
+
+  /auth/email/verify:
+    post:
+      tags:
+        - Auth
+      summary: 이메일 인증 확인
+      description: |
+        인증 이메일의 링크에 포함된 토큰으로 이메일 인증을 완료한다.
+        인증 토큰은 24시간 유효하며 1회 사용 후 즉시 무효화된다.
+        인증 완료 시 계정 상태가 UNVERIFIED → ACTIVE로 변경된다.
+      operationId: verifyEmail
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailVerifyRequest'
+            example:
+              token: uuid-verify-token
+      responses:
+        '200':
+          description: 이메일 인증 성공
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/EmailVerifyData'
+              example:
+                success: true
+                data:
+                  userId: user_123
+                  status: ACTIVE
+                error: null
+        '400':
+          description: 유효하지 않은 인증 토큰
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: VERIFY_TOKEN_INVALID
+                  message: 유효하지 않은 인증 링크입니다.
+        '409':
+          description: 이미 인증된 계정
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: ALREADY_VERIFIED
+                  message: 이미 인증이 완료된 계정입니다.
+        '410':
+          description: 인증 링크 만료
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: VERIFY_TOKEN_EXPIRED
+                  message: 인증 링크가 만료되었습니다. 인증 이메일을 재발송해주세요.
+
+  /auth/email/resend:
+    post:
+      tags:
+        - Auth
+      summary: 인증 이메일 재발송
+      description: |
+        인증 이메일을 재발송한다.
+        재발송은 1분에 1회로 제한된다 (Rate Limit).
+      operationId: resendVerificationEmail
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailResendRequest'
+            example:
+              email: user@example.com
+      responses:
+        '200':
+          description: 재발송 성공
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data: null
+                error: null
+        '409':
+          description: 이미 인증된 계정
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: ALREADY_VERIFIED
+                  message: 이미 인증이 완료된 계정입니다.
+        '429':
+          description: 재발송 Rate Limit 초과
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: RESEND_RATE_LIMIT
+                  message: 잠시 후 다시 시도해주세요. (1분에 1회 제한)
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    Unauthorized:
+      description: 인증 토큰 없음 또는 만료
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            data: null
+            error:
+              code: UNAUTHORIZED
+              message: 인증이 필요합니다.
+
+  schemas:
+
+    # 공통 응답 포맷
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          nullable: true
+        error:
+          nullable: true
+          example: null
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          nullable: true
+          example: null
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+
+    ErrorDetail:
+      type: object
+      properties:
+        code:
+          type: string
+          description: 에러 코드
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          description: 에러 메시지
+          example: 입력값이 올바르지 않습니다.
+
+    # 공통 에러 코드
+    # UNAUTHORIZED   401 - 인증 토큰 없음 또는 만료
+    # FORBIDDEN      403 - 권한 없음
+    # NOT_FOUND      404 - 리소스 없음
+    # VALIDATION_ERROR 400 - 입력값 유효성 오류
+    # INTERNAL_ERROR 500 - 서버 내부 오류
+
+    # 사용자 상태
+    # UNVERIFIED - 이메일 미인증
+    # ACTIVE     - 정상 활성 계정
+    # LOCKED     - 로그인 실패 잠금
+
+    # Request Schemas
+    SignupRequest:
+      type: object
+      required:
+        - email
+        - password
+        - passwordConfirm
+      properties:
+        email:
+          type: string
+          format: email
+          description: 가입 이메일
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          description: 비밀번호 (최소 8자, 영문+숫자+특수문자 조합)
+          example: Password1!
+        passwordConfirm:
+          type: string
+          format: password
+          description: 비밀번호 확인
+          example: Password1!
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          example: Password1!
+
+    EmailVerifyRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: 인증 이메일에 포함된 일회성 토큰
+          example: uuid-verify-token
+
+    EmailResendRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+
+    # Response Data Schemas
+    SignupData:
+      type: object
+      properties:
+        userId:
+          type: string
+          example: user_123
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        status:
+          type: string
+          enum: [UNVERIFIED, ACTIVE, LOCKED]
+          example: UNVERIFIED
+
+    LoginData:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT 액세스 토큰
+          example: eyJhbGci...
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          description: 액세스 토큰 만료 시간 (초)
+          example: 3600
+        user:
+          $ref: '#/components/schemas/UserSummary'
+
+    TokenRefreshData:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: 새로 발급된 JWT 액세스 토큰
+          example: eyJhbGci...
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          description: 액세스 토큰 만료 시간 (초)
+          example: 3600
+
+    EmailVerifyData:
+      type: object
+      properties:
+        userId:
+          type: string
+          example: user_123
+        status:
+          type: string
+          enum: [ACTIVE]
+          example: ACTIVE
+
+    UserSummary:
+      type: object
+      properties:
+        userId:
+          type: string
+          example: user_123
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        status:
+          type: string
+          enum: [UNVERIFIED, ACTIVE, LOCKED]
+          example: ACTIVE
