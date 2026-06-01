@@ -1,0 +1,19 @@
+spring:
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        show_sql: false
+
+# Server
+server:
+  port: 8080
+
+# Logging
+logging:
+  level:
+    root: WARN
+    modeep.modev: INFO
