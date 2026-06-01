@@ -53,11 +53,14 @@ dependencies {
     // security
     implementation("org.springframework.boot:spring-boot-starter-security")
 
-    // sentry
-    implementation("io.sentry:sentry-spring-boot-starter-jakarta")
+    // mail
+    implementation("org.springframework.boot:spring-boot-starter-mail")
 
     // swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16")
+
+    // sentry
+    implementation("io.sentry:sentry-spring-boot-starter-jakarta")
 
     // devtools
     developmentOnly("org.springframework.boot:spring-boot-devtools")
