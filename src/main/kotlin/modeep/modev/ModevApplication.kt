@@ -1,4 +1,4 @@
-package medeep.modev
+package modeep.modev
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
