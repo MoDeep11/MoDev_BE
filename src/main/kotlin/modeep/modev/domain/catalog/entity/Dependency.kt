@@ -31,4 +31,8 @@ class Dependency(
     val description: String? = null,
     @Column(nullable = true)
     val version: String? = null,
+    @Column(nullable = false, name = "is_recommended")
+    val isRecommended: Boolean = false,
+    @Column(name = "document_url", nullable = true)
+    val documentUrl: String? = null,
 ) : BaseEntity()

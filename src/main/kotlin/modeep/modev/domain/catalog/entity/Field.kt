@@ -19,4 +19,6 @@ class Field(
     val name: String,
     @Column(nullable = true)
     val description: String? = null,
+    @Column(name = "icon_url", nullable = true)
+    val iconUrl: String? = null,
 ) : BaseEntity()
