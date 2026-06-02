@@ -8,6 +8,6 @@ enum class ProjectErrorCode(
     override val code: String,
     override val message: String,
 ) : ErrorCode {
-    GENERATE_NOT_FOUND(HttpStatus.NOT_FOUND, "PROJ-001", "생성 결과를 찾을 수 없거나 만료되었습니다."),
+    PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "PROJ-001", "생성 결과를 찾을 수 없거나 만료되었습니다."),
     INVALID_STACK_COMBINATION(HttpStatus.BAD_REQUEST, "PROJ-002", "지원하지 않는 스택 조합입니다."),
 }

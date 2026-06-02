@@ -35,7 +35,7 @@ paths:
         - Projects
       summary: 프로젝트 저장
       description: |
-        AI 생성 결과(`generateId`)를 계정에 저장하여 프로젝트를 생성한다.
+        AI 생성 결과(`projectId`)를 계정에 저장하여 프로젝트를 생성한다.
         로그인 및 이메일 인증 완료가 필요하다.
       operationId: saveProject
       security:
@@ -47,7 +47,7 @@ paths:
             schema:
               $ref: '#/components/schemas/SaveProjectRequest'
             example:
-              generateId: gen_abc123
+              projectId: proj_abc123
               projectName: my-project
               description: Spring Boot + React 기반 풀스택 프로젝트
       responses:
@@ -93,7 +93,7 @@ paths:
                 success: false
                 data: null
                 error:
-                  code: GENERATE_NOT_FOUND
+                  code: PROJECT_NOT_FOUND
                   message: 생성 결과를 찾을 수 없거나 만료되었습니다.
     get:
       tags:
@@ -195,7 +195,7 @@ paths:
                   projectId: proj_xyz
                   projectName: my-project
                   description: Spring Boot + React 기반 풀스택 프로젝트
-                  domains:
+                  fields:
                     - Backend
                     - Frontend
                   stacks:
@@ -328,7 +328,7 @@ paths:
       summary: 프로젝트 기술 스택 수정 및 AI 재생성 요청
       description: |
         기술 스택과 의존성을 변경하고 AI 재생성을 요청한다.
-        재생성은 비동기로 처리되며, 응답으로 받은 `generateId`로 상태를 폴링해야 한다.
+        재생성은 비동기로 처리되며, 응답으로 받은 `projectId`로 상태를 폴링해야 한다.
         재생성 완료 후 미리보기 확인 없이 자동 저장되지 않는다.
         변경 이력(변경 전/후 스택 목록, 변경일시)이 기록된다.
       operationId: updateProjectStacks
@@ -343,9 +343,9 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateStacksRequest'
             example:
-              domainIds:
-                - domain_fe
-                - domain_be
+              fieldIds:
+                - field_fe
+                - field_be
               stackIds:
                 - stack_spring
                 - stack_react
@@ -368,7 +368,7 @@ paths:
               example:
                 success: true
                 data:
-                  generateId: gen_def456
+                  projectId: proj_def456
                   status: PENDING
                 error: null
         '400':
@@ -543,13 +543,13 @@ components:
     SaveProjectRequest:
       type: object
       required:
-        - generateId
+        - projectId
         - projectName
       properties:
-        generateId:
+        projectId:
           type: string
-          description: FEAT-2에서 생성된 generateId
-          example: gen_abc123
+          description: FEAT-2에서 생성된 projectId
+          example: proj_abc123
         projectName:
           type: string
           description: 프로젝트명 (최대 50자, 특수문자 제한)
@@ -574,16 +574,16 @@ components:
     UpdateStacksRequest:
       type: object
       required:
-        - domainIds
+        - fieldIds
         - stackIds
         - dependencyIds
       properties:
-        domainIds:
+        fieldIds:
           type: array
           items:
             type: string
           description: 변경할 분야 ID 목록 (선택 사항)
-          example: [domain_fe, domain_be]
+          example: [field_fe, field_be]
         stackIds:
           type: array
           items:
@@ -666,7 +666,7 @@ components:
         description:
           type: string
           example: Spring Boot + React 기반 풀스택 프로젝트
-        domains:
+        fields:
           type: array
           items:
             type: string
@@ -712,10 +712,10 @@ components:
     UpdateStacksData:
       type: object
       properties:
-        generateId:
+        projectId:
           type: string
           description: 재생성 요청 ID (상태 조회에 사용)
-          example: gen_def456
+          example: proj_def456
         status:
           type: string
           enum: [PENDING, IN_PROGRESS, COMPLETED, FAILED]
