@@ -51,9 +51,9 @@ paths:
               $ref: '#/components/schemas/GenerateRequest'
             example:
               projectName: my-project
-              domainIds:
-                - domain_fe
-                - domain_be
+              fieldIds:
+                - field_fe
+                - field_be
               stackIds:
                 - stack_spring
                 - stack_react
@@ -432,19 +432,19 @@ components:
       type: object
       required:
         - projectName
-        - domainIds
+        - fieldIds
         - stackIds
       properties:
         projectName:
           type: string
           description: 프로젝트명 (최대 50자, 특수문자 제한)
           example: my-project
-        domainIds:
+        fieldIds:
           type: array
           items:
             type: string
           description: 선택된 개발 분야 ID 목록
-          example: [domain_fe, domain_be]
+          example: [field_fe, field_be]
         stackIds:
           type: array
           items:
