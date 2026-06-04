@@ -548,7 +548,6 @@ components:
       type: object
       required:
         - projectName
-        - description
         - fieldIds
         - stackIds
         - dependencyIds

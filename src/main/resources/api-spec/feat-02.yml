@@ -424,10 +424,10 @@ components:
       required:
         - projectId
       properties:
-        projectName:
+        projectId:
           type: string
           description: 프로젝트 ID
-          example: proj-abc123
+          example: proj_abc123
     GenerateAcceptedData:
       type: object
       properties:
