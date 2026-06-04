@@ -3,6 +3,7 @@ package modeep.modev.domain.project.service
 import modeep.modev.domain.project.client.ProjectDetailClient
 import modeep.modev.domain.project.controller.dto.request.SaveProjectRequest
 import modeep.modev.domain.project.controller.dto.request.UpdateProjectMetadataRequest
+import modeep.modev.domain.project.controller.dto.response.DeleteProjectResponse
 import modeep.modev.domain.project.controller.dto.response.GetProjectsResponse
 import modeep.modev.domain.project.controller.dto.response.PaginationResponse
 import modeep.modev.domain.project.controller.dto.response.ProjectSummaryResponse
@@ -16,6 +17,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 @Service
@@ -66,6 +68,27 @@ class ProjectService(
         )
     }
 
+    @Transactional
+    fun deleteProject(projectId: String): DeleteProjectResponse {
+        val project =
+            projectRepository
+                .findById(projectId)
+                .orElseThrow { BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND) }
+
+        val deletedAt = java.time.Instant.now()
+        val hardDeleteScheduledAt = deletedAt.plus(30, ChronoUnit.DAYS)
+        project.delete(
+            deletedAt = deletedAt,
+            hardDeleteScheduledAt = hardDeleteScheduledAt,
+        )
+
+        return DeleteProjectResponse(
+            projectId = project.projectId,
+            deletedAt = deletedAt,
+            hardDeleteScheduledAt = hardDeleteScheduledAt,
+        )
+    }
+
     @Transactional(readOnly = true)
     fun getProjects(
         page: Int,
@@ -79,9 +102,9 @@ class ProjectService(
 
         val projects =
             if (normalizedKeyword.isBlank()) {
-                projectRepository.findAll(pageable)
+                projectRepository.findByDeletedAtIsNull(pageable)
             } else {
-                projectRepository.findByProjectNameContainingIgnoreCase(normalizedKeyword, pageable)
+                projectRepository.findByProjectNameContainingIgnoreCaseAndDeletedAtIsNull(normalizedKeyword, pageable)
             }
 
         return GetProjectsResponse(

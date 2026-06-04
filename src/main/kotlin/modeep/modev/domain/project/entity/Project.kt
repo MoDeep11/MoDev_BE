@@ -22,6 +22,10 @@ class Project(
     val createdAt: Instant = Instant.now(),
     @Column(name = "updated_at", nullable = false)
     var updatedAt: Instant = createdAt,
+    @Column(name = "deleted_at")
+    var deletedAt: Instant? = null,
+    @Column(name = "hard_delete_scheduled_at")
+    var hardDeleteScheduledAt: Instant? = null,
 ) {
     fun updateMetadata(
         projectName: String,
@@ -30,5 +34,14 @@ class Project(
         this.projectName = projectName
         this.description = description
         this.updatedAt = Instant.now()
+    }
+
+    fun delete(
+        deletedAt: Instant,
+        hardDeleteScheduledAt: Instant,
+    ) {
+        this.deletedAt = deletedAt
+        this.hardDeleteScheduledAt = hardDeleteScheduledAt
+        this.updatedAt = deletedAt
     }
 }
