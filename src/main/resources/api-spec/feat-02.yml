@@ -50,16 +50,7 @@ paths:
             schema:
               $ref: '#/components/schemas/GenerateRequest'
             example:
-              projectName: my-project
-              fieldIds:
-                - field_fe
-                - field_be
-              stackIds:
-                - stack_spring
-                - stack_react
-              dependencyIds:
-                - dep_spring_security
-                - dep_jpa
+              projectId: proj_abc123
       responses:
         '202':
           description: 생성 요청 접수 (비동기 처리)
@@ -78,8 +69,8 @@ paths:
                   projectId: proj_abc123
                   status: PENDING
                 error: null
-        '400':
-          description: 입력값 유효성 오류
+        '404':
+          description: 프로젝트를 찾을 수 없음
           content:
             application/json:
               schema:
@@ -88,8 +79,8 @@ paths:
                 success: false
                 data: null
                 error:
-                  code: VALIDATION_ERROR
-                  message: 최소 1개 이상의 스택을 선택해야 합니다.
+                  code: PROJECT_NOT_FOUND
+                  message: 해당 ID의 프로젝트를 찾을 수 없습니다.
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -431,34 +422,12 @@ components:
     GenerateRequest:
       type: object
       required:
-        - projectName
-        - fieldIds
-        - stackIds
+        - projectId
       properties:
-        projectName:
+        projectId:
           type: string
-          description: 프로젝트명 (최대 50자, 특수문자 제한)
-          example: my-project
-        fieldIds:
-          type: array
-          items:
-            type: string
-          description: 선택된 개발 분야 ID 목록
-          example: [field_fe, field_be]
-        stackIds:
-          type: array
-          items:
-            type: string
-          description: 선택된 기술 스택 ID 목록
-          minItems: 1
-          example: [stack_spring, stack_react]
-        dependencyIds:
-          type: array
-          items:
-            type: string
-          description: 선택된 의존성 ID 목록 (선택 사항)
-          example: [dep_spring_security, dep_jpa]
-
+          description: 프로젝트 ID
+          example: proj_abc123
     GenerateAcceptedData:
       type: object
       properties:
