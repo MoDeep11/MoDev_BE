@@ -7,6 +7,7 @@ import modeep.modev.domain.project.service.ProjectService
 import modeep.modev.global.response.ApiResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -62,6 +63,20 @@ class ProjectController(
                 ApiResponse(
                     success = true,
                     data = projectService.updateProjectMetadata(projectId, request),
+                    error = null,
+                ),
+            )
+
+    @DeleteMapping("/{projectId}")
+    fun deleteProject(
+        @PathVariable projectId: String,
+    ): ResponseEntity<ApiResponse> =
+        ResponseEntity
+            .status(HttpStatus.OK)
+            .body(
+                ApiResponse(
+                    success = true,
+                    data = projectService.deleteProject(projectId),
                     error = null,
                 ),
             )
