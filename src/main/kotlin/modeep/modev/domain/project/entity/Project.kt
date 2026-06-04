@@ -15,9 +15,20 @@ class Project(
     @Column(name = "generate_id", nullable = false, length = 50)
     val generateId: String,
     @Column(name = "project_name", nullable = false, length = 50)
-    val projectName: String,
+    var projectName: String,
     @Column(name = "description", length = 500)
-    val description: String? = null,
+    var description: String? = null,
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: Instant = Instant.now(),
-)
+    @Column(name = "updated_at", nullable = false)
+    var updatedAt: Instant = createdAt,
+) {
+    fun updateMetadata(
+        projectName: String,
+        description: String?,
+    ) {
+        this.projectName = projectName
+        this.description = description
+        this.updatedAt = Instant.now()
+    }
+}
