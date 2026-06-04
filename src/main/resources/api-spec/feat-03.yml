@@ -6,7 +6,7 @@ info:
 
     ### 인증 정책
     - 모든 API는 로그인된 사용자만 접근 가능하다.
-    - 프로젝트 저장(`POST /projects`)은 이메일 인증 완료가 추가로 필요하다.
+    - 프로젝트 저장(`POST /projects`)은 비로그인 사용자도 이용 가능하다.
     - 요청 헤더에 `Authorization: Bearer {access_token}` 을 포함해야 한다.
 
     ### 삭제 정책
@@ -38,8 +38,6 @@ paths:
         AI 생성 결과(`projectId`)를 계정에 저장하여 프로젝트를 생성한다.
         로그인 및 이메일 인증 완료가 필요하다.
       operationId: saveProject
-      security:
-        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -47,9 +45,18 @@ paths:
             schema:
               $ref: '#/components/schemas/SaveProjectRequest'
             example:
-              projectId: proj_abc123
               projectName: my-project
               description: Spring Boot + React 기반 풀스택 프로젝트
+              fieldIds:
+                - field_fe
+                - field_be
+              stackIds:
+                - stack_spring
+                - stack_react
+                - stack_redis
+              dependencyIds:
+                - dep_spring_security
+                - dep_jpa
       responses:
         '201':
           description: 프로젝트 저장 성공
@@ -69,32 +76,29 @@ paths:
                   projectName: my-project
                   createdAt: "2025-05-26T10:00:00Z"
                 error: null
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          description: 이메일 미인증
+        '400':
+          description: 잘못된 요청
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                success: false
-                data: null
-                error:
-                  code: EMAIL_NOT_VERIFIED
-                  message: 이메일 인증이 필요합니다.
-        '404':
-          description: 생성 ID 없음 또는 만료
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                success: false
-                data: null
-                error:
-                  code: PROJECT_NOT_FOUND
-                  message: 생성 결과를 찾을 수 없거나 만료되었습니다.
+              examples:
+                validationError:
+                  summary: 입력값 유효성 오류
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: VALIDATION_ERROR
+                      message: 프로젝트명은 최대 50자까지 입력 가능합니다.
+                invalidStackCombination:
+                  summary: 지원하지 않는 스택 조합
+                  value:
+                    success: false
+                    data: null
+                    error:
+                      code: INVALID_STACK_COMBINATION
+                      message: 지원하지 않는 스택 조합입니다.
     get:
       tags:
         - Projects
@@ -543,13 +547,12 @@ components:
     SaveProjectRequest:
       type: object
       required:
-        - projectId
         - projectName
+        - description
+        - fieldIds
+        - stackIds
+        - dependencyIds
       properties:
-        projectId:
-          type: string
-          description: FEAT-2에서 생성된 projectId
-          example: proj_abc123
         projectName:
           type: string
           description: 프로젝트명 (최대 50자, 특수문자 제한)
@@ -558,6 +561,25 @@ components:
           type: string
           description: 프로젝트 설명 (최대 500자)
           example: Spring Boot + React 기반 풀스택 프로젝트
+        fieldIds:
+          type: array
+          items:
+            type: string
+          description: 선택한 분야 ID 목록
+          example: [ field_fe, field_be ]
+        stackIds:
+          type: array
+          items:
+            type: string
+          description: 선택한 기술 스택 ID 목록
+          minItems: 1
+          example: [ stack_spring, stack_react, stack_redis ]
+        dependencyIds:
+          type: array
+          items:
+            type: string
+          description: 선택한 의존성 ID 목록
+          example: [ dep_spring_security, dep_jpa ]
 
     UpdateMetadataRequest:
       type: object
@@ -582,7 +604,7 @@ components:
           type: array
           items:
             type: string
-          description: 변경할 분야 ID 목록 (선택 사항)
+          description: 변경할 분야 ID 목록
           example: [field_fe, field_be]
         stackIds:
           type: array
@@ -595,7 +617,7 @@ components:
           type: array
           items:
             type: string
-          description: 변경할 의존성 ID 목록 (선택 사항)
+          description: 변경할 의존성 ID 목록
           example: [dep_spring_security, dep_jpa]
 
     # Response Data Schemas
