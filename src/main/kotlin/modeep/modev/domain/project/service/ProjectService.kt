@@ -1,6 +1,5 @@
 package modeep.modev.domain.project.service
 
-import modeep.modev.domain.project.client.ProjectDetailClient
 import modeep.modev.domain.project.controller.dto.request.SaveProjectRequest
 import modeep.modev.domain.project.controller.dto.request.UpdateProjectMetadataRequest
 import modeep.modev.domain.project.controller.dto.response.DeleteProjectResponse
@@ -23,7 +22,6 @@ import java.util.UUID
 @Service
 class ProjectService(
     private val projectRepository: ProjectRepository,
-    private val projectDetailClient: ProjectDetailClient,
 ) {
     @Transactional
     fun saveProject(request: SaveProjectRequest): SaveProjectResponse {
