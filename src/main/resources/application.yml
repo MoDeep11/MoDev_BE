@@ -69,6 +69,10 @@ ai:
       connect: 5000
       read: 35000
 
+stream:
+  structure:
+    timeout-millis: 600000 # 10분
+
 # AWS S3
 cloud:
   aws:

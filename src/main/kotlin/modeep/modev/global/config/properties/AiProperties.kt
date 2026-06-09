@@ -1,4 +1,4 @@
-package modeep.modev.global.config.property
+package modeep.modev.global.config.properties
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

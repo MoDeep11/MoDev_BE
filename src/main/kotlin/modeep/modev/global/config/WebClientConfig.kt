@@ -1,6 +1,6 @@
 package modeep.modev.global.config
 
-import modeep.modev.global.config.property.AiProperties
+import modeep.modev.global.config.properties.AiProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.client.WebClient
