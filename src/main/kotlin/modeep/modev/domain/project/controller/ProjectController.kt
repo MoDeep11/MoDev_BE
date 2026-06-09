@@ -52,6 +52,20 @@ class ProjectController(
                 ),
             )
 
+    @GetMapping("/{projectId}")
+    fun getProjectDetail(
+        @PathVariable projectId: String,
+    ): ResponseEntity<ApiResponse> =
+        ResponseEntity
+            .status(HttpStatus.OK)
+            .body(
+                ApiResponse(
+                    success = true,
+                    data = projectService.getProjectDetail(projectId),
+                    error = null,
+                ),
+            )
+
     @PatchMapping("/{projectId}/metadata")
     fun updateProjectMetadata(
         @PathVariable projectId: String,
