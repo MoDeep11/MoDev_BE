@@ -1,11 +1,25 @@
 package modeep.modev.domain.catalog.repository
 
-import io.lettuce.core.dynamic.annotation.Param
 import modeep.modev.domain.catalog.entity.TechStack
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 
 interface TechStackRepository : JpaRepository<TechStack, Long> {
+    fun findByPublicIdIn(publicIds: Collection<String>): List<TechStack>
+
+    @Query(
+        """
+        SELECT ts FROM TechStack ts
+        JOIN ProjectTechStack pts ON pts.id.techStackId = ts.id
+        WHERE pts.id.projectId = :projectId
+        ORDER BY ts.id ASC
+        """,
+    )
+    fun findByProjectId(
+        @Param("projectId") projectId: String,
+    ): List<TechStack>
+
     @Query(
         """
         SELECT ts FROM TechStack ts
