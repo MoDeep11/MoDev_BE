@@ -1,15 +1,31 @@
 package modeep.modev.domain.project.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import modeep.modev.domain.catalog.repository.DependencyRepository
+import modeep.modev.domain.catalog.repository.FieldRepository
+import modeep.modev.domain.catalog.repository.TechStackRepository
 import modeep.modev.domain.project.controller.dto.request.SaveProjectRequest
 import modeep.modev.domain.project.controller.dto.request.UpdateProjectMetadataRequest
 import modeep.modev.domain.project.controller.dto.response.DeleteProjectResponse
+import modeep.modev.domain.project.controller.dto.response.GetProjectDetailResponse
 import modeep.modev.domain.project.controller.dto.response.GetProjectsResponse
 import modeep.modev.domain.project.controller.dto.response.PaginationResponse
+import modeep.modev.domain.project.controller.dto.response.ProjectDependencyResponse
+import modeep.modev.domain.project.controller.dto.response.ProjectStackResponse
 import modeep.modev.domain.project.controller.dto.response.ProjectSummaryResponse
 import modeep.modev.domain.project.controller.dto.response.SaveProjectResponse
 import modeep.modev.domain.project.controller.dto.response.UpdateProjectMetadataResponse
 import modeep.modev.domain.project.entity.Project
+import modeep.modev.domain.project.entity.ProjectDependency
+import modeep.modev.domain.project.entity.ProjectField
+import modeep.modev.domain.project.entity.ProjectTechStack
+import modeep.modev.domain.project.entity.id.ProjectDependencyId
+import modeep.modev.domain.project.entity.id.ProjectFieldId
+import modeep.modev.domain.project.entity.id.ProjectTechStackId
+import modeep.modev.domain.project.repository.ProjectDependencyRepository
+import modeep.modev.domain.project.repository.ProjectFieldRepository
 import modeep.modev.domain.project.repository.ProjectRepository
+import modeep.modev.domain.project.repository.ProjectTechStackRepository
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.ProjectErrorCode
 import org.springframework.data.domain.PageRequest
@@ -22,19 +38,51 @@ import java.util.UUID
 @Service
 class ProjectService(
     private val projectRepository: ProjectRepository,
+    private val objectMapper: ObjectMapper,
+    private val fieldRepository: FieldRepository,
+    private val dependencyRepository: DependencyRepository,
+    private val techStackRepository: TechStackRepository,
+    private val projectFieldRepository: ProjectFieldRepository,
+    private val projectTechStackRepository: ProjectTechStackRepository,
+    private val projectDependencyRepository: ProjectDependencyRepository,
 ) {
     @Transactional
     fun saveProject(request: SaveProjectRequest): SaveProjectResponse {
         val projectId = generateProjectId()
+        val fields = fieldRepository.findByPublicIdIn(request.fieldIds.distinct())
+        val stacks = techStackRepository.findByPublicIdIn(request.stackIds.distinct())
+        val dependencies = dependencyRepository.findByPublicIdIn(request.dependencyIds.distinct())
+        validateCatalogIds(request, fields.map { it.publicId }, stacks.map { it.publicId }, dependencies.map { it.publicId })
+
         val project =
             projectRepository.save(
                 Project(
                     projectId = projectId,
-                    generateId = projectId,
                     projectName = request.projectName,
                     description = request.description,
                 ),
             )
+        projectFieldRepository.saveAll(
+            fields.map {
+                ProjectField(
+                    id = ProjectFieldId(projectId = projectId, fieldId = it.id),
+                )
+            },
+        )
+        projectTechStackRepository.saveAll(
+            stacks.map {
+                ProjectTechStack(
+                    id = ProjectTechStackId(projectId = projectId, techStackId = it.id),
+                )
+            },
+        )
+        projectDependencyRepository.saveAll(
+            dependencies.map {
+                ProjectDependency(
+                    id = ProjectDependencyId(projectId = projectId, dependencyId = it.id),
+                )
+            },
+        )
 
         return SaveProjectResponse(
             projectId = project.projectId,
@@ -88,6 +136,44 @@ class ProjectService(
     }
 
     @Transactional(readOnly = true)
+    fun getProjectDetail(projectId: String): GetProjectDetailResponse {
+        val project =
+            projectRepository
+                .findByProjectIdAndDeletedAtIsNull(projectId)
+                ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
+        val fields = fieldRepository.findByProjectId(projectId)
+        val stacks = techStackRepository.findByProjectId(projectId)
+        val dependencies = dependencyRepository.findByProjectId(projectId)
+
+        return GetProjectDetailResponse(
+            projectId = project.projectId,
+            projectName = project.projectName,
+            description = project.description,
+            fields = fields.map { it.name },
+            stacks =
+                stacks.map {
+                    ProjectStackResponse(
+                        stackId = it.publicId,
+                        name = it.name,
+                        category = it.category.name,
+                    )
+                },
+            dependencies =
+                dependencies.map {
+                    ProjectDependencyResponse(
+                        dependencyId = it.publicId,
+                        name = it.name,
+                        version = it.version,
+                        stackId = it.techStack.publicId,
+                    )
+                },
+            fileTree = project.structure ?: objectMapper.createArrayNode(),
+            createdAt = project.createdAt,
+            updatedAt = project.updatedAt,
+        )
+    }
+
+    @Transactional(readOnly = true)
     fun getProjects(
         page: Int,
         size: Int,
@@ -115,7 +201,7 @@ class ProjectService(
                         stacks = emptyList(),
                         createdAt = project.createdAt,
                         updatedAt = project.updatedAt,
-                        status = "ACTIVE",
+                        status = project.status.name,
                     )
                 },
             pagination =
@@ -128,5 +214,26 @@ class ProjectService(
         )
     }
 
-    private fun generateProjectId(): String = "proj_${UUID.randomUUID().toString().replace("-", "").take(12)}"
+    private fun generateProjectId(): String = UUID.randomUUID().toString()
+
+    private fun validateCatalogIds(
+        request: SaveProjectRequest,
+        fieldIds: List<String>,
+        stackIds: List<String>,
+        dependencyIds: List<String>,
+    ) {
+        val missingIds =
+            mapOf(
+                "fieldIds" to request.fieldIds.toSet() - fieldIds.toSet(),
+                "stackIds" to request.stackIds.toSet() - stackIds.toSet(),
+                "dependencyIds" to request.dependencyIds.toSet() - dependencyIds.toSet(),
+            ).filterValues { it.isNotEmpty() }
+
+        if (missingIds.isNotEmpty()) {
+            throw BusinessException(
+                errorCode = ProjectErrorCode.INVALID_STACK_COMBINATION,
+                details = missingIds,
+            )
+        }
+    }
 }
