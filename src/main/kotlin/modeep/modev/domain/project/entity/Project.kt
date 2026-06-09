@@ -1,11 +1,14 @@
 package modeep.modev.domain.project.entity
 
+import com.fasterxml.jackson.databind.JsonNode
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.time.Instant
 
 @Entity
@@ -16,12 +19,13 @@ class Project(
     val projectId: String,
     @Column(name = "user_id")
     val userId: Long? = null,
-    @Column(name = "generate_id", nullable = false, length = 50)
-    val generateId: String,
     @Column(name = "project_name", nullable = false, length = 50)
     var projectName: String,
     @Column(length = 500)
     var description: String? = null,
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    var structure: JsonNode? = null,
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: ProjectStatus = ProjectStatus.ACTIVE,
@@ -31,8 +35,6 @@ class Project(
     var updatedAt: Instant = createdAt,
     @Column(name = "deleted_at")
     var deletedAt: Instant? = null,
-    @Column(name = "hard_delete_scheduled_at")
-    var hardDeleteScheduledAt: Instant? = null,
 ) {
     fun updateMetadata(
         projectName: String,
@@ -48,8 +50,6 @@ class Project(
         hardDeleteScheduledAt: Instant,
     ) {
         this.deletedAt = deletedAt
-        this.hardDeleteScheduledAt = hardDeleteScheduledAt
-        this.status = ProjectStatus.DELETED
         this.updatedAt = deletedAt
     }
 }
