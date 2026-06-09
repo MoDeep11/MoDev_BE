@@ -1,5 +1,6 @@
 package modeep.modev.domain.structure.controller
 
+import jakarta.servlet.http.HttpServletResponse
 import modeep.modev.domain.structure.service.StreamStructureService
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.GetMapping
@@ -20,5 +21,10 @@ class StructureController(
     )
     fun stream(
         @PathVariable projectId: UUID,
-    ): SseEmitter = streamStructureService.connect(projectId.toString())
+        response: HttpServletResponse,
+    ): SseEmitter {
+        response.setHeader("X-Accel-Buffering", "no")
+
+        return streamStructureService.connect(projectId.toString())
+    }
 }

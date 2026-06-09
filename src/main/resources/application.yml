@@ -72,6 +72,7 @@ ai:
 stream:
   structure:
     timeout-millis: 600000 # 10분
+    heartbeat-interval-millis: 30000 # 30초
 
 # AWS S3
 cloud:
