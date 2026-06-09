@@ -1,6 +1,5 @@
 package modeep.modev.domain.project.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import modeep.modev.domain.catalog.repository.DependencyRepository
 import modeep.modev.domain.catalog.repository.FieldRepository
 import modeep.modev.domain.catalog.repository.TechStackRepository
@@ -38,7 +37,6 @@ import java.util.UUID
 @Service
 class ProjectService(
     private val projectRepository: ProjectRepository,
-    private val objectMapper: ObjectMapper,
     private val fieldRepository: FieldRepository,
     private val dependencyRepository: DependencyRepository,
     private val techStackRepository: TechStackRepository,
@@ -167,7 +165,7 @@ class ProjectService(
                         stackId = it.techStack.publicId,
                     )
                 },
-            fileTree = project.structure ?: objectMapper.createArrayNode(),
+            fileTree = project.structure ?: "[]",
             createdAt = project.createdAt,
             updatedAt = project.updatedAt,
         )

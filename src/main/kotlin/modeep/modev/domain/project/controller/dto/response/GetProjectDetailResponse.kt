@@ -1,6 +1,5 @@
 package modeep.modev.domain.project.controller.dto.response
 
-import com.fasterxml.jackson.databind.JsonNode
 import java.time.Instant
 
 data class GetProjectDetailResponse(
@@ -10,7 +9,7 @@ data class GetProjectDetailResponse(
     val fields: List<String>,
     val stacks: List<ProjectStackResponse>,
     val dependencies: List<ProjectDependencyResponse>,
-    val fileTree: JsonNode,
+    val fileTree: String,
     val createdAt: Instant,
     val updatedAt: Instant,
 )
