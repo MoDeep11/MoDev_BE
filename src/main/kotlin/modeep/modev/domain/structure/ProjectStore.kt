@@ -19,12 +19,23 @@ class ProjectStore {
             fields = emptyList(),
         )
     }
+
+    fun updateStatus(
+        id: UUID,
+        status: String,
+    ) = Unit
+
+    fun updateStructure(
+        id: UUID,
+        structure: String,
+    ) = Unit
 }
 
 data class Project(
     val id: UUID,
     val name: String,
     val structure: String? = null,
+    val status: String? = null,
     val fields: List<Field>,
     val techStacks: List<TechStack>,
     val dependencies: List<Dependency>,

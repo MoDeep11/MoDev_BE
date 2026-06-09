@@ -14,6 +14,7 @@ class StreamStructureService(
 
     fun connect(id: String): SseEmitter {
         val emitter = SseEmitter(properties.timeoutMillis)
+        emitters.remove(id)?.complete()
         emitters[id] = emitter
 
         emitter.onCompletion {
@@ -22,6 +23,7 @@ class StreamStructureService(
 
         emitter.onTimeout {
             emitters.remove(id)
+            emitter.complete()
         }
 
         emitter.onError {
