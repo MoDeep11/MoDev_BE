@@ -43,7 +43,7 @@ class ProjectController(
         @Valid @RequestBody request: SaveProjectRequest,
     ): ResponseEntity<ApiResponse> =
         ResponseEntity
-            .status(HttpStatus.CREATED)
+            .status(HttpStatus.OK)
             .body(
                 ApiResponse(
                     success = true,
