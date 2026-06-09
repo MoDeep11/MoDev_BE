@@ -1,7 +1,11 @@
 package modeep.modev.domain.structure.worker
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 import io.github.oshai.kotlinlogging.KotlinLogging
 import modeep.modev.domain.structure.controller.dto.response.ErrorStreamResponse
+import modeep.modev.domain.structure.controller.dto.response.FileCreatedStreamResponse
+import modeep.modev.domain.structure.controller.dto.response.vo.StructureFileType
 import modeep.modev.domain.structure.service.StreamStructureService
 import modeep.modev.domain.structure.service.vo.StreamStructureEvent
 import modeep.modev.domain.structure.worker.event.GenerateStructureEvent
@@ -20,6 +24,7 @@ class GenerateStructureWorker(
     private val streamStructureService: StreamStructureService,
     private val webClient: WebClient,
     private val structureStatusService: StructureStatusService,
+    private val objectMapper: ObjectMapper,
 ) {
     @Async("structureExecutor")
     @EventListener
@@ -58,6 +63,10 @@ class GenerateStructureWorker(
                     )
 
                     when (streamEvent) {
+                        StreamStructureEvent.FILE_CREATED -> {
+                            structureStatusService.saveFileCreated(projectId, parseFileCreated(data))
+                        }
+
                         StreamStructureEvent.COMPLETE -> {
                             structureStatusService.markCompleted(projectId, data)
                             streamStructureService.complete(streamId)
@@ -102,5 +111,20 @@ class GenerateStructureWorker(
         } finally {
             streamStructureService.complete(streamId)
         }
+    }
+
+    private fun parseFileCreated(data: String): FileCreatedStreamResponse {
+        val node = objectMapper.readTree(data) as ObjectNode
+        val type =
+            StructureFileType.valueOf(
+                node.path("type").asText().uppercase(),
+            )
+
+        return FileCreatedStreamResponse(
+            type = type,
+            path = node.path("path").asText(),
+            depth = node.path("depth").asInt(),
+            content = node.path("content").takeIf { !it.isMissingNode && !it.isNull }?.asText(),
+        )
     }
 }

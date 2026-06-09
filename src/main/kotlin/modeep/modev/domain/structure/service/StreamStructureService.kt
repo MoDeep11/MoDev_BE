@@ -1,5 +1,6 @@
 package modeep.modev.domain.structure.service
 
+import modeep.modev.domain.structure.controller.dto.response.ConnectedStreamResponse
 import modeep.modev.domain.structure.service.vo.StreamStructureEvent
 import modeep.modev.global.config.properties.StructureStreamProperties
 import org.springframework.stereotype.Service
@@ -29,6 +30,16 @@ class StreamStructureService(
         emitter.onError {
             emitters.remove(id)
         }
+
+        send(
+            id = id,
+            event = StreamStructureEvent.CONNECTED,
+            data =
+                ConnectedStreamResponse(
+                    projectId = id,
+                    message = "연결되었습니다. 생성을 시작합니다.",
+                ),
+        )
 
         return emitter
     }

@@ -1,6 +1,8 @@
 package modeep.modev.domain.structure.worker
 
 import modeep.modev.domain.structure.ProjectStore
+import modeep.modev.domain.structure.StructureFile
+import modeep.modev.domain.structure.controller.dto.response.FileCreatedStreamResponse
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -12,7 +14,23 @@ class StructureStatusService(
 ) {
     @Transactional
     fun markGenerating(projectId: UUID) {
-        repository.updateStatus(projectId, "GENERATING")
+        repository.updateStatus(projectId, "IN_PROGRESS")
+    }
+
+    @Transactional
+    fun saveFileCreated(
+        projectId: UUID,
+        file: FileCreatedStreamResponse,
+    ) {
+        repository.saveStructureFile(
+            projectId,
+            StructureFile(
+                type = file.type.name,
+                path = file.path,
+                depth = file.depth,
+                content = file.content,
+            ),
+        )
     }
 
     @Transactional
