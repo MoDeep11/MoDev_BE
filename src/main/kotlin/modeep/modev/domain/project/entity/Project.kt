@@ -1,6 +1,5 @@
 package modeep.modev.domain.project.entity
 
-import com.fasterxml.jackson.databind.JsonNode
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -25,7 +24,7 @@ class Project(
     var description: String? = null,
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    var structure: JsonNode? = null,
+    var structure: String? = null,
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: ProjectStatus = ProjectStatus.ACTIVE,
