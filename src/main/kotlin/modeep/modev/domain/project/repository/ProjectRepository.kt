@@ -6,12 +6,9 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface ProjectRepository : JpaRepository<Project, String> {
-    fun findByDeletedAtIsNull(pageable: Pageable): Page<Project>
+    fun findByProjectIdAndDeletedAtIsNull(projectId: String): Project?
 
-    fun findByProjectNameContainingIgnoreCase(
-        projectName: String,
-        pageable: Pageable,
-    ): Page<Project>
+    fun findByDeletedAtIsNull(pageable: Pageable): Page<Project>
 
     fun findByProjectNameContainingIgnoreCaseAndDeletedAtIsNull(
         projectName: String,
