@@ -44,10 +44,7 @@ class Project(
         this.updatedAt = Instant.now()
     }
 
-    fun delete(
-        deletedAt: Instant,
-        hardDeleteScheduledAt: Instant,
-    ) {
+    fun delete(deletedAt: Instant) {
         this.deletedAt = deletedAt
         this.updatedAt = deletedAt
     }
