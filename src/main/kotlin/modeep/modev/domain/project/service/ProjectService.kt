@@ -57,7 +57,7 @@ class ProjectService(
                 Project(
                     projectId = projectId,
                     projectName = request.projectName,
-                    description = request.description,
+                    description = request.description.normalizeDescription(),
                 ),
             )
         projectFieldRepository.saveAll(
@@ -101,7 +101,7 @@ class ProjectService(
 
         project.updateMetadata(
             projectName = request.projectName,
-            description = request.description,
+            description = request.description.normalizeDescription(),
         )
 
         return UpdateProjectMetadataResponse(
@@ -123,7 +123,6 @@ class ProjectService(
         val hardDeleteScheduledAt = deletedAt.plus(30, ChronoUnit.DAYS)
         project.delete(
             deletedAt = deletedAt,
-            hardDeleteScheduledAt = hardDeleteScheduledAt,
         )
 
         return DeleteProjectResponse(
@@ -188,6 +187,15 @@ class ProjectService(
             } else {
                 projectRepository.findByProjectNameContainingIgnoreCaseAndDeletedAtIsNull(normalizedKeyword, pageable)
             }
+        val projectIds = projects.content.map { it.projectId }
+        val stacksByProjectId =
+            if (projectIds.isEmpty()) {
+                emptyMap()
+            } else {
+                techStackRepository
+                    .findByProjectIdIn(projectIds)
+                    .groupBy({ it.projectId }, { it.name })
+            }
 
         return GetProjectsResponse(
             projects =
@@ -196,7 +204,7 @@ class ProjectService(
                         projectId = project.projectId,
                         projectName = project.projectName,
                         description = project.description,
-                        stacks = emptyList(),
+                        stacks = stacksByProjectId[project.projectId].orEmpty(),
                         createdAt = project.createdAt,
                         updatedAt = project.updatedAt,
                         status = project.status.name,
@@ -213,6 +221,8 @@ class ProjectService(
     }
 
     private fun generateProjectId(): String = UUID.randomUUID().toString()
+
+    private fun String?.normalizeDescription(): String? = this?.trim()?.takeIf { it.isNotEmpty() }
 
     private fun validateCatalogIds(
         request: SaveProjectRequest,
