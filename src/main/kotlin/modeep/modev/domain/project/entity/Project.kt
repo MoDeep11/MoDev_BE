@@ -15,7 +15,7 @@ import java.time.Instant
 class Project(
     @Id
     @Column(name = "project_id", nullable = false, length = 50)
-    val projectId: String,
+    val id: String,
     @Column(name = "user_id")
     val userId: Long? = null,
     @Column(name = "project_name", nullable = false, length = 50)
@@ -39,6 +39,11 @@ class Project(
         projectName: String,
         description: String?,
     ) {
+        require(projectName.isNotBlank()) { "프로젝트 이름은 비어있을 수 없습니다" }
+        require(projectName.length <= 50) { "프로젝트 이름은 50자를 초과할 수 없습니다" }
+        description?.let {
+            require(it.length <= 500) { "설명은 500자를 초과할 수 없습니다" }
+        }
         this.projectName = projectName
         this.description = description
         this.updatedAt = Instant.now()
