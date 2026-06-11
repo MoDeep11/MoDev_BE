@@ -55,7 +55,7 @@ class ProjectService(
         val project =
             projectRepository.save(
                 Project(
-                    projectId = projectId,
+                    id = projectId,
                     projectName = request.projectName,
                     description = request.description.normalizeDescription(),
                 ),
@@ -83,7 +83,7 @@ class ProjectService(
         )
 
         return SaveProjectResponse(
-            projectId = project.projectId,
+            projectId = project.id,
             projectName = project.projectName,
             createdAt = project.createdAt,
         )
@@ -96,7 +96,7 @@ class ProjectService(
     ): UpdateProjectMetadataResponse {
         val project =
             projectRepository
-                .findByProjectIdAndDeletedAtIsNull(projectId)
+                .findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
         project.updateMetadata(
@@ -105,7 +105,7 @@ class ProjectService(
         )
 
         return UpdateProjectMetadataResponse(
-            projectId = project.projectId,
+            id = project.id,
             projectName = project.projectName,
             description = project.description,
             updatedAt = project.updatedAt,
@@ -116,7 +116,7 @@ class ProjectService(
     fun deleteProject(projectId: String): DeleteProjectResponse {
         val project =
             projectRepository
-                .findByProjectIdAndDeletedAtIsNull(projectId)
+                .findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
         val deletedAt = java.time.Instant.now()
@@ -126,7 +126,7 @@ class ProjectService(
         )
 
         return DeleteProjectResponse(
-            projectId = project.projectId,
+            projectId = project.id,
             deletedAt = deletedAt,
             hardDeleteScheduledAt = hardDeleteScheduledAt,
         )
@@ -136,14 +136,14 @@ class ProjectService(
     fun getProjectDetail(projectId: String): GetProjectDetailResponse {
         val project =
             projectRepository
-                .findByProjectIdAndDeletedAtIsNull(projectId)
+                .findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
         val fields = fieldRepository.findByProjectId(projectId)
         val stacks = techStackRepository.findByProjectId(projectId)
         val dependencies = dependencyRepository.findByProjectId(projectId)
 
         return GetProjectDetailResponse(
-            projectId = project.projectId,
+            projectId = project.id,
             projectName = project.projectName,
             description = project.description,
             fields = fields.map { it.name },
@@ -187,7 +187,7 @@ class ProjectService(
             } else {
                 projectRepository.findByProjectNameContainingIgnoreCaseAndDeletedAtIsNull(normalizedKeyword, pageable)
             }
-        val projectIds = projects.content.map { it.projectId }
+        val projectIds = projects.content.map { it.id }
         val stacksByProjectId =
             if (projectIds.isEmpty()) {
                 emptyMap()
@@ -201,10 +201,10 @@ class ProjectService(
             projects =
                 projects.content.map { project ->
                     ProjectSummaryResponse(
-                        projectId = project.projectId,
+                        projectId = project.id,
                         projectName = project.projectName,
                         description = project.description,
-                        stacks = stacksByProjectId[project.projectId].orEmpty(),
+                        stacks = stacksByProjectId[project.id].orEmpty(),
                         createdAt = project.createdAt,
                         updatedAt = project.updatedAt,
                         status = project.status.name,
