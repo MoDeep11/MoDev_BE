@@ -116,8 +116,8 @@ class ProjectService(
     fun deleteProject(projectId: String): DeleteProjectResponse {
         val project =
             projectRepository
-                .findById(projectId)
-                .orElseThrow { BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND) }
+                .findByProjectIdAndDeletedAtIsNull(projectId)
+                ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
         val deletedAt = java.time.Instant.now()
         val hardDeleteScheduledAt = deletedAt.plus(30, ChronoUnit.DAYS)
