@@ -96,8 +96,8 @@ class ProjectService(
     ): UpdateProjectMetadataResponse {
         val project =
             projectRepository
-                .findById(projectId)
-                .orElseThrow { BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND) }
+                .findByProjectIdAndDeletedAtIsNull(projectId)
+                ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
         project.updateMetadata(
             projectName = request.projectName,
