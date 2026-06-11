@@ -31,6 +31,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -119,7 +120,7 @@ class ProjectService(
                 .findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
-        val deletedAt = java.time.Instant.now()
+        val deletedAt = LocalDateTime.now()
         val hardDeleteScheduledAt = deletedAt.plus(30, ChronoUnit.DAYS)
         project.delete(
             deletedAt = deletedAt,

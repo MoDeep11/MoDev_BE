@@ -6,9 +6,10 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import modeep.modev.global.common.BaseEntity
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
-import java.time.Instant
+import java.time.LocalDateTime
 
 @Entity
 @Table(name = "projects")
@@ -28,13 +29,9 @@ class Project(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var status: ProjectStatus = ProjectStatus.ACTIVE,
-    @Column(name = "created_at", nullable = false, updatable = false)
-    val createdAt: Instant = Instant.now(),
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: Instant = createdAt,
     @Column(name = "deleted_at")
-    var deletedAt: Instant? = null,
-) {
+    var deletedAt: LocalDateTime? = null,
+) : BaseEntity() {
     fun updateMetadata(
         projectName: String,
         description: String?,
@@ -46,10 +43,10 @@ class Project(
         }
         this.projectName = projectName
         this.description = description
-        this.updatedAt = Instant.now()
+        this.updatedAt = LocalDateTime.now()
     }
 
-    fun delete(deletedAt: Instant) {
+    fun delete(deletedAt: LocalDateTime) {
         this.deletedAt = deletedAt
         this.updatedAt = deletedAt
     }

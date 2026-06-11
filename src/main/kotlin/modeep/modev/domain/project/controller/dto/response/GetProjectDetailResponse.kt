@@ -1,6 +1,6 @@
 package modeep.modev.domain.project.controller.dto.response
 
-import java.time.Instant
+import java.time.LocalDateTime
 
 data class GetProjectDetailResponse(
     val projectId: String,
@@ -10,8 +10,8 @@ data class GetProjectDetailResponse(
     val stacks: List<ProjectStackResponse>,
     val dependencies: List<ProjectDependencyResponse>,
     val fileTree: String,
-    val createdAt: Instant,
-    val updatedAt: Instant,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime,
 )
 
 data class ProjectStackResponse(
