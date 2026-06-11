@@ -22,6 +22,19 @@ interface TechStackRepository : JpaRepository<TechStack, Long> {
 
     @Query(
         """
+        SELECT new modeep.modev.domain.catalog.repository.ProjectStackSummary(pts.id.projectId, ts.name)
+        FROM TechStack ts
+        JOIN ProjectTechStack pts ON pts.id.techStackId = ts.id
+        WHERE pts.id.projectId IN :projectIds
+        ORDER BY pts.id.projectId ASC, ts.id ASC
+        """,
+    )
+    fun findByProjectIdIn(
+        @Param("projectIds") projectIds: Collection<String>,
+    ): List<ProjectStackSummary>
+
+    @Query(
+        """
         SELECT ts FROM TechStack ts
         JOIN FieldStackMapping fsm ON fsm.id.techStackId = ts.id
         JOIN Field f ON fsm.id.fieldId = f.id
@@ -47,3 +60,8 @@ interface TechStackRepository : JpaRepository<TechStack, Long> {
         @Param("keyword") keyword: String,
     ): List<TechStack>
 }
+
+data class ProjectStackSummary(
+    val projectId: String,
+    val name: String,
+)
