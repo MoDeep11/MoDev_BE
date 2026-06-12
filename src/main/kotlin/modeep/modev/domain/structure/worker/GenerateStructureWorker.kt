@@ -39,6 +39,7 @@ class GenerateStructureWorker(
                 .uri("/ai/structures/generate")
                 .bodyValue(event)
                 .retrieve()
+                // 응답이 rawJson이기 때문에 String으로 받아서 처리
                 .bodyToFlux(object : ParameterizedTypeReference<ServerSentEvent<String>>() {})
                 .doOnNext { sse ->
                     val eventName =
@@ -81,6 +82,7 @@ class GenerateStructureWorker(
                     }
                 }
                 .doOnError {
+                    // 에러 처리
                     structureStatusService.markFailed(projectId)
 
                     streamStructureService.send(
@@ -97,6 +99,7 @@ class GenerateStructureWorker(
                 }
                 .blockLast()
         } catch (e: Exception) {
+            // 실패 처리
             structureStatusService.markFailed(projectId)
 
             streamStructureService.send(
@@ -113,6 +116,7 @@ class GenerateStructureWorker(
         }
     }
 
+    // 응답으로 받은 Json 파싱
     private fun parseFileCreated(data: String): FileCreatedStreamResponse {
         val node = objectMapper.readTree(data) as ObjectNode
         val type =
