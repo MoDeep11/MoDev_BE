@@ -3,7 +3,10 @@ package modeep.modev.domain.project.controller
 import jakarta.validation.Valid
 import modeep.modev.domain.project.controller.dto.request.SaveProjectRequest
 import modeep.modev.domain.project.controller.dto.request.UpdateProjectMetadataRequest
-import modeep.modev.domain.project.service.ProjectService
+import modeep.modev.domain.project.service.DeleteProjectService
+import modeep.modev.domain.project.service.GetProjectService
+import modeep.modev.domain.project.service.PatchProjectService
+import modeep.modev.domain.project.service.PostProjectService
 import modeep.modev.global.response.ApiResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -20,7 +23,10 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/projects")
 class ProjectController(
-    private val projectService: ProjectService,
+    private val getProjectService: GetProjectService,
+    private val patchProjectService: PatchProjectService,
+    private val deleteProjectService: DeleteProjectService,
+    private val postProjectService: PostProjectService,
 ) {
     @GetMapping
     fun getProjects(
@@ -33,7 +39,7 @@ class ProjectController(
             .body(
                 ApiResponse(
                     success = true,
-                    data = projectService.getProjects(page, size, keyword),
+                    data = getProjectService.getProjects(page, size, keyword),
                     error = null,
                 ),
             )
@@ -47,7 +53,7 @@ class ProjectController(
             .body(
                 ApiResponse(
                     success = true,
-                    data = projectService.saveProject(request),
+                    data = postProjectService.saveProject(request),
                     error = null,
                 ),
             )
@@ -61,7 +67,7 @@ class ProjectController(
             .body(
                 ApiResponse(
                     success = true,
-                    data = projectService.getProjectDetail(projectId),
+                    data = getProjectService.getProjectDetail(projectId),
                     error = null,
                 ),
             )
@@ -76,7 +82,7 @@ class ProjectController(
             .body(
                 ApiResponse(
                     success = true,
-                    data = projectService.updateProjectMetadata(projectId, request),
+                    data = patchProjectService.updateProjectMetadata(projectId, request),
                     error = null,
                 ),
             )
@@ -90,7 +96,7 @@ class ProjectController(
             .body(
                 ApiResponse(
                     success = true,
-                    data = projectService.deleteProject(projectId),
+                    data = deleteProjectService.deleteProject(projectId),
                     error = null,
                 ),
             )
