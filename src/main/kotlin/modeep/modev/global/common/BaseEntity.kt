@@ -6,16 +6,15 @@ import jakarta.persistence.MappedSuperclass
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
+import java.time.Instant
 
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener::class)
-class BaseEntity(
+abstract class BaseEntity(
     @CreatedDate
     @Column(name = "created_at", updatable = false, nullable = false)
-    var createdAt: OffsetDateTime = OffsetDateTime.now(ZoneOffset.UTC),
+    var createdAt: Instant = Instant.now(),
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
-    var updatedAt: OffsetDateTime = OffsetDateTime.now(ZoneOffset.UTC),
+    var updatedAt: Instant = Instant.now(),
 )
