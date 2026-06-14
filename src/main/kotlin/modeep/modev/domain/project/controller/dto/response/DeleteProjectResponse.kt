@@ -1,9 +1,9 @@
 package modeep.modev.domain.project.controller.dto.response
 
-import java.time.LocalDateTime
+import java.time.Instant
 
 data class DeleteProjectResponse(
     val projectId: String,
-    val deletedAt: LocalDateTime,
-    val hardDeleteScheduledAt: LocalDateTime,
+    val deletedAt: Instant,
+    val hardDeleteScheduledAt: Instant,
 )

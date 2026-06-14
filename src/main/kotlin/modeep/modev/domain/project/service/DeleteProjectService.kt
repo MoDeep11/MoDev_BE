@@ -6,7 +6,7 @@ import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.ProjectErrorCode
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
+import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 @Service
@@ -20,7 +20,7 @@ class DeleteProjectService(
                 .findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
-        val deletedAt = LocalDateTime.now()
+        val deletedAt = Instant.now()
         val hardDeleteScheduledAt = deletedAt.plus(30, ChronoUnit.DAYS)
         project.delete(
             deletedAt = deletedAt,

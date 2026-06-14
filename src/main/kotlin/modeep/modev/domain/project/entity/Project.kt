@@ -9,7 +9,7 @@ import jakarta.persistence.Table
 import modeep.modev.global.common.BaseEntity
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
-import java.time.LocalDateTime
+import java.time.Instant
 
 @Entity
 @Table(name = "projects")
@@ -30,7 +30,7 @@ class Project(
     @Column(nullable = false)
     var status: ProjectStatus = ProjectStatus.ACTIVE,
     @Column(name = "deleted_at")
-    var deletedAt: LocalDateTime? = null,
+    var deletedAt: Instant? = null,
 ) : BaseEntity() {
     fun updateMetadata(
         projectName: String,
@@ -43,10 +43,10 @@ class Project(
         }
         this.projectName = projectName
         this.description = description
-        this.updatedAt = LocalDateTime.now()
+        this.updatedAt = Instant.now()
     }
 
-    fun delete(deletedAt: LocalDateTime) {
+    fun delete(deletedAt: Instant) {
         this.deletedAt = deletedAt
         this.updatedAt = deletedAt
     }
