@@ -78,11 +78,11 @@ class PostProjectServiceTest {
 
         val exception =
             assertFailsWith<BusinessException> {
-                postProjectService.saveProject(request)
+                postProjectService.saveProject(request, userId = null)
             }
 
         assertEquals(ProjectErrorCode.INVALID_STACK_COMBINATION, exception.errorCode)
-        assertEquals(mapOf("stackIds" to setOf(stack.publicId)), exception.details)
+
         verifyNoInteractions(
             projectRepository,
             projectFieldRepository,

@@ -10,6 +10,7 @@ import modeep.modev.domain.project.service.PostProjectService
 import modeep.modev.global.response.ApiResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -47,16 +48,18 @@ class ProjectController(
     @PostMapping
     fun saveProject(
         @Valid @RequestBody request: SaveProjectRequest,
-    ): ResponseEntity<ApiResponse> =
-        ResponseEntity
+    ): ResponseEntity<ApiResponse> {
+        val userId = SecurityContextHolder.getContext().authentication?.principal as? Long
+        return ResponseEntity
             .status(HttpStatus.OK)
             .body(
                 ApiResponse(
                     success = true,
-                    data = postProjectService.saveProject(request),
+                    data = postProjectService.saveProject(request, userId),
                     error = null,
                 ),
             )
+    }
 
     @GetMapping("/{projectId}")
     fun getProjectDetail(

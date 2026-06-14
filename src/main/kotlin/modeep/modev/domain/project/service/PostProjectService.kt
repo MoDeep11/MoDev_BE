@@ -34,7 +34,10 @@ class PostProjectService(
     private val projectDependencyRepository: ProjectDependencyRepository,
 ) {
     @Transactional
-    fun saveProject(request: SaveProjectRequest): SaveProjectResponse {
+    fun saveProject(
+        request: SaveProjectRequest,
+        userId: Long?,
+    ): SaveProjectResponse {
         val projectId = generateProjectId()
         val fields = fieldRepository.findByPublicIdIn(request.fieldIds.distinct())
         val stacks = techStackRepository.findByPublicIdIn(request.stackIds.distinct())
@@ -46,6 +49,7 @@ class PostProjectService(
             projectRepository.save(
                 Project(
                     id = projectId,
+                    userId = userId,
                     projectName = request.projectName,
                     description = request.description.normalizeDescription(),
                 ),
