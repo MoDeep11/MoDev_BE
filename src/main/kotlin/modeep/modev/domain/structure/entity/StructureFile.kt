@@ -12,6 +12,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import modeep.modev.domain.structure.entity.vo.StructureFileType
 import modeep.modev.global.common.BaseEntity
+import modeep.modev.global.util.LanguageDetector
 import java.util.UUID
 
 @Entity
@@ -42,7 +43,7 @@ class StructureFile(
     @Column(nullable = true, columnDefinition = "TEXT")
     var content: String? = null,
     @Column(nullable = false, length = 100)
-    var language: String,
+    var language: String = LanguageDetector.detect(path),
 ) : BaseEntity() {
     fun update(
         type: StructureFileType,

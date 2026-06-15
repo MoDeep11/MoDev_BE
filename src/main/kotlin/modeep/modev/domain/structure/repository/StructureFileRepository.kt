@@ -9,4 +9,6 @@ interface StructureFileRepository : JpaRepository<StructureFile, Long> {
         projectId: UUID,
         path: String,
     ): StructureFile?
+
+    fun findAllByProjectIdOrderByPathAsc(projectId: UUID): List<StructureFile>
 }

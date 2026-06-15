@@ -7,7 +7,7 @@ info:
     ### 생성 플로우
     1. `POST /projects/structures` 로 생성 요청 → `projectId` 반환
     2. `GET /projects/structures/{projectId}/stream` 으로 SSE 연결 → 실시간 파일 트리 수신
-    3. `GET /projects/structures/{projectId}/files?path={filePath}` 로 파일 내용 미리보기
+    3. `GET /projects/structures/{projectId}/files?filePath={filePath}` 로 파일 내용 미리보기
     4. `POST /projects/structures/{projectId}/download` 로 zip 다운로드 URL 발급
 
     ### 인증 정책
@@ -99,7 +99,7 @@ paths:
         | 값 | 설명 |
         |---|---|
         | `PENDING` | 생성 대기 중 |
-        | `IN_PROGRESS` | 생성 중 |
+        | `GENERATING` | 생성 중 |
         | `COMPLETED` | 생성 완료 |
         | `FAILED` | 생성 실패 |
       operationId: getGenerateStatus
@@ -273,7 +273,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/ProjectId'
         - in: query
-          name: path
+          name: filePath
           required: true
           schema:
             type: string
