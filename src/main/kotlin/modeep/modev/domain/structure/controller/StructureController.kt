@@ -73,4 +73,13 @@ class StructureController(
             success = true,
             data = getStructureFileService.execute(projectId, path),
         )
+
+    @PostMapping("/{projectId}/download")
+    fun issueDownloadUrl(
+        @PathVariable projectId: UUID,
+    ): ApiResponse =
+        ApiResponse(
+            success = true,
+            data = downloadStructureService.issueDownloadUrl(projectId),
+        )
 }
