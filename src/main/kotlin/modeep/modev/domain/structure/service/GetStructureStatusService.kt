@@ -41,6 +41,7 @@ class GetStructureStatusService(
         )
     }
 
+    // 파일 구조 생성, StructureFile 정보 기반
     private fun buildFileTree(files: List<StructureFile>): List<FileTreeNodeResponse> {
         val roots = mutableListOf<TreeNode>()
         val nodesByPath = mutableMapOf<String, TreeNode>()
@@ -84,15 +85,20 @@ class GetStructureStatusService(
                 }
             }
 
-        return roots.map { it.toResponse() }
+        // 한 번 더 정렬하여 응답
+        return roots
+            .sortedWith(compareBy<TreeNode> { it.type != StructureFileType.DIRECTORY }.thenBy { it.name })
+            .map { it.toResponse() }
     }
 
+    // 레벨 반환
     private fun String.depth(): Int =
         trim('/')
             .takeIf { it.isNotBlank() }
             ?.count { it == '/' }
             ?: 0
 
+    // 구조 노드로 사용되는 내부 데이터 클래스
     private data class TreeNode(
         val name: String,
         var type: StructureFileType,

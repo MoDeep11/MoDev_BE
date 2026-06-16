@@ -12,7 +12,7 @@ class ZipArchiveService {
 
         ZipOutputStream(output).use { zip ->
             entries.forEach { entry ->
-                val entryName = entry.path.trim('/')
+                val entryName = entry.path.trim().trim('/')
                 if (entryName.isBlank()) {
                     return@forEach
                 }
