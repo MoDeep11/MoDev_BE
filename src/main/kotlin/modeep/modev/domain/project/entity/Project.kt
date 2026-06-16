@@ -43,11 +43,9 @@ class Project(
         }
         this.projectName = projectName
         this.description = description
-        this.updatedAt = Instant.now()
     }
 
     fun delete(deletedAt: Instant) {
         this.deletedAt = deletedAt
-        this.updatedAt = deletedAt
     }
 }
