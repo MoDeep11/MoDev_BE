@@ -1,11 +1,38 @@
 package modeep.modev.domain.catalog.repository
 
-import io.lettuce.core.dynamic.annotation.Param
 import modeep.modev.domain.catalog.entity.TechStack
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 
 interface TechStackRepository : JpaRepository<TechStack, Long> {
+    fun findByPublicIdIn(publicIds: Collection<String>): List<TechStack>
+
+    @Query(
+        """
+        SELECT ts FROM TechStack ts
+        JOIN ProjectTechStack pts ON pts.id.techStackId = ts.id
+        WHERE pts.id.projectId = :projectId
+        ORDER BY ts.id ASC
+        """,
+    )
+    fun findByProjectId(
+        @Param("projectId") projectId: String,
+    ): List<TechStack>
+
+    @Query(
+        """
+        SELECT new modeep.modev.domain.catalog.repository.ProjectStackSummary(pts.id.projectId, ts.name)
+        FROM TechStack ts
+        JOIN ProjectTechStack pts ON pts.id.techStackId = ts.id
+        WHERE pts.id.projectId IN :projectIds
+        ORDER BY pts.id.projectId ASC, ts.id ASC
+        """,
+    )
+    fun findByProjectIdIn(
+        @Param("projectIds") projectIds: Collection<String>,
+    ): List<ProjectStackSummary>
+
     @Query(
         """
         SELECT ts FROM TechStack ts
@@ -33,3 +60,8 @@ interface TechStackRepository : JpaRepository<TechStack, Long> {
         @Param("keyword") keyword: String,
     ): List<TechStack>
 }
+
+data class ProjectStackSummary(
+    val projectId: String,
+    val name: String,
+)
