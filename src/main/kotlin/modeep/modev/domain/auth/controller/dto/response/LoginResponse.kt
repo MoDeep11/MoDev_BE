@@ -17,7 +17,7 @@ data class LoginUserResponse(
     companion object {
         fun from(user: User) =
             LoginUserResponse(
-                userId = user.publicId,
+                userId = user.id,
                 email = user.email,
                 status = user.status.name,
             )

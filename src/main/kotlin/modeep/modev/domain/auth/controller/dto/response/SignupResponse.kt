@@ -10,7 +10,7 @@ data class SignupResponse(
     companion object {
         fun from(user: User) =
             SignupResponse(
-                userId = user.publicId,
+                userId = user.id,
                 email = user.email,
                 status = user.status.name,
             )
