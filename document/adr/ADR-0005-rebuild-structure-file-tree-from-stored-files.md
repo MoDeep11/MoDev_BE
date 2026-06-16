@@ -59,7 +59,6 @@ Accepted
 구현 지침:
 
 - 트리 생성 로직은 상태 조회 서비스 내부에 두거나 별도 assembler/helper로 분리한다.
-- `path`는 저장 시점에 검증해 빈 경로, 절대 경로, `../` 포함 경로를 거부한다.
 - 파일 경로의 중간 디렉토리가 별도 `DIRECTORY` 항목으로 저장되지 않은 경우에도 응답 트리에서는 필요한 부모 디렉토리 노드를 보강할 수 있다.
-- `project.status`가 `COMPLETED`일 때만 `result.fileTree`를 반환하고, `PENDING`, `IN_PROGRESS`, `FAILED`에서는 `result`를 `null`로 반환한다.
+- `project.status`가 `COMPLETED`일 때만 `result.fileTree`를 반환한다.
 - 성능 문제가 확인되면 `project.structure`에 재구성된 `fileTree` JSON을 캐시하되, 캐시 무효화 기준은 `structure_files` 변경 시점으로 둔다.

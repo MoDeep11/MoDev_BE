@@ -6,4 +6,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class AiProperties(
     val baseUrl: String,
     val internalApiKey: String,
-)
+    val timeout: Timeout,
+) {
+    data class Timeout(
+        val connect: Long,
+        val read: Long,
+    )
+}

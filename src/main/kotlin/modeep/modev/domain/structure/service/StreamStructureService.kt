@@ -48,7 +48,9 @@ class StreamStructureService(
                 ),
         )
 
-        startHeartbeat(id)
+        if (emitters[id] == emitter) {
+            startHeartbeat(id)
+        }
 
         return emitter
     }

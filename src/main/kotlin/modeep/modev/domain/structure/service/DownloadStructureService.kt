@@ -1,5 +1,6 @@
 package modeep.modev.domain.structure.service
 
+import modeep.modev.domain.structure.Project
 import modeep.modev.domain.structure.ProjectStore
 import modeep.modev.domain.structure.controller.dto.response.DownloadStructureResponse
 import modeep.modev.domain.structure.entity.vo.StructureFileType
@@ -11,7 +12,6 @@ import modeep.modev.global.zip.ZipArchiveEntry
 import modeep.modev.global.zip.ZipArchiveEntryType
 import modeep.modev.global.zip.ZipArchiveService
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -25,11 +25,8 @@ class DownloadStructureService(
     private val zipArchiveService: ZipArchiveService,
     private val s3StorageService: S3StorageService,
 ) {
-    @Transactional(readOnly = true)
     fun issueDownloadUrl(projectId: UUID): DownloadStructureResponse {
-        val project =
-            projectStore.get(projectId)
-                ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
+        val project = findByProjectId(projectId)
 
         val expiration = Duration.ofHours(1)
         val expiresAt = OffsetDateTime.now(ZoneOffset.UTC).plus(expiration)
@@ -49,6 +46,19 @@ class DownloadStructureService(
             expiresAt = expiresAt,
             fileName = fileName,
         )
+    }
+
+    fun findByProjectId(projectId: UUID): Project {
+        val project =
+            projectStore.get(projectId)
+                ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
+
+        // todo: enum으로 변경
+        return if (project.status == "COMPLETED") {
+            project
+        } else {
+            throw BusinessException(ProjectErrorCode.PROJECT_NOT_COMPLETED)
+        }
     }
 
     private fun createZip(projectId: UUID): ByteArray {

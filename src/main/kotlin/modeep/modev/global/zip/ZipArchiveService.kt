@@ -12,10 +12,7 @@ class ZipArchiveService {
 
         ZipOutputStream(output).use { zip ->
             entries.forEach { entry ->
-                val entryName = entry.path.trim().trim('/')
-                if (entryName.isBlank()) {
-                    return@forEach
-                }
+                val entryName = sanitizeEntryPath(entry.path) ?: return@forEach
 
                 val zipEntryName =
                     if (entry.type == ZipArchiveEntryType.DIRECTORY) {
@@ -33,5 +30,19 @@ class ZipArchiveService {
         }
 
         return output.toByteArray()
+    }
+
+    private fun sanitizeEntryPath(rawPath: String): String? {
+        val normalized = rawPath.replace('\\', '/').trim('/')
+
+        if (normalized.isBlank()) return null
+
+        val segments = normalized.split('/')
+
+        require(segments.none { it.isBlank() || it == "." || it == ".." }) {
+            "Invalid zip entry path: $rawPath"
+        }
+
+        return segments.joinToString("/")
     }
 }
