@@ -8,11 +8,8 @@ import modeep.modev.domain.structure.service.GetStructureFileService
 import modeep.modev.domain.structure.service.GetStructureStatusService
 import modeep.modev.domain.structure.service.StreamStructureService
 import modeep.modev.global.response.ApiResponse
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -28,9 +25,8 @@ class StructureController(
     private val streamStructureService: StreamStructureService,
     private val getStructureFileService: GetStructureFileService,
     private val downloadStructureService: DownloadStructureService,
-) {
-    @PostMapping
-    fun generate(
+) : StructureControllerDocs {
+    override fun generate(
         @RequestBody request: GenerateStructureRequest,
     ): ResponseEntity<ApiResponse> =
         ResponseEntity
@@ -42,8 +38,7 @@ class StructureController(
                 ),
             )
 
-    @GetMapping("/{projectId}")
-    fun getStatus(
+    override fun getStatus(
         @PathVariable projectId: UUID,
     ): ApiResponse =
         ApiResponse(
@@ -51,11 +46,7 @@ class StructureController(
             data = getStructureStatusService.execute(projectId),
         )
 
-    @GetMapping(
-        "/{projectId}/stream",
-        produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
-    )
-    fun stream(
+    override fun stream(
         @PathVariable projectId: UUID,
         response: HttpServletResponse,
     ): SseEmitter {
@@ -64,8 +55,7 @@ class StructureController(
         return streamStructureService.connect(projectId.toString())
     }
 
-    @GetMapping("/{projectId}/files")
-    fun getFile(
+    override fun getFile(
         @PathVariable projectId: UUID,
         @RequestParam(name = "filePath") path: String,
     ): ApiResponse =
@@ -74,8 +64,7 @@ class StructureController(
             data = getStructureFileService.execute(projectId, path),
         )
 
-    @PostMapping("/{projectId}/download")
-    fun issueDownloadUrl(
+    override fun issueDownloadUrl(
         @PathVariable projectId: UUID,
     ): ApiResponse =
         ApiResponse(
