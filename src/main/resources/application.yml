@@ -46,6 +46,17 @@ spring:
     encoding: UTF-8
     cache-duration: 3600
 
+  # AWS S3
+  cloud:
+    aws:
+      s3:
+        bucket: ${AWS_S3_BUCKET}
+      region:
+        static: ${AWS_REGION}
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+
 # Server
 server:
   port: 8080
@@ -69,16 +80,10 @@ ai:
       connect: 5000
       read: 35000
 
-# AWS S3
-cloud:
-  aws:
-    s3:
-      bucket: ${AWS_S3_BUCKET}
-    region:
-      static: ${AWS_REGION}
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
+stream:
+  structure:
+    timeout-millis: 600000 # 10분
+    heartbeat-interval-millis: 30000 # 30초
 
 # Springdoc (비활성화)
 springdoc:

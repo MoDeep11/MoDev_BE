@@ -1,0 +1,24 @@
+@host = http://127.0.0.1:9999
+@projectId = 550e8400-e29b-41d4-a716-446655440000
+@filePath = backend/build.gradle
+
+### 프로젝트 구조 생성 요청
+POST {{host}}/projects/structures
+Content-Type: application/json
+
+{
+  "projectId": "{{projectId}}"
+}
+
+### 프로젝트 구조 생성 상태 조회
+GET {{host}}/projects/structures/{{projectId}}
+
+### SSE 스트리밍 연결
+GET {{host}}/projects/structures/{{projectId}}/stream
+Accept: text/event-stream
+
+### 생성된 특정 파일 내용 조회
+GET {{host}}/projects/structures/{{projectId}}/files?filePath={{filePath}}
+
+### 생성된 프로젝트 zip 다운로드 URL 발급
+POST {{host}}/projects/structures/{{projectId}}/download

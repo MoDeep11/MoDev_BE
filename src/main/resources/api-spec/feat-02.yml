@@ -7,7 +7,7 @@ info:
     ### 생성 플로우
     1. `POST /projects/structures` 로 생성 요청 → `projectId` 반환
     2. `GET /projects/structures/{projectId}/stream` 으로 SSE 연결 → 실시간 파일 트리 수신
-    3. `GET /projects/structures/{projectId}/files/{filePath}` 로 파일 내용 미리보기
+    3. `GET /projects/structures/{projectId}/files?filePath={filePath}` 로 파일 내용 미리보기
     4. `POST /projects/structures/{projectId}/download` 로 zip 다운로드 URL 발급
 
     ### 인증 정책
@@ -50,7 +50,7 @@ paths:
             schema:
               $ref: '#/components/schemas/GenerateRequest'
             example:
-              projectId: proj_abc123
+              projectId: 550e8400-e29b-41d4-a716-446655440000
       responses:
         '202':
           description: 생성 요청 접수 (비동기 처리)
@@ -66,7 +66,7 @@ paths:
               example:
                 success: true
                 data:
-                  projectId: proj_abc123
+                  projectId: 550e8400-e29b-41d4-a716-446655440000
                   status: PENDING
                 error: null
         '404':
@@ -91,13 +91,15 @@ paths:
       summary: 프로젝트 구조 생성 상태 조회
       description: |
         생성 요청의 현재 상태와 완료 시 파일 트리 결과를 반환한다.
+        완료 결과의 `fileTree`는 `file_created` 이벤트로 저장된 파일/디렉토리 목록을 기준으로 재구성한다.
+        `complete` 이벤트 payload는 생성 완료 알림 및 요약 정보로만 사용하며, 파일 트리의 source of truth로 사용하지 않는다.
         비로그인 사용자도 접근 가능하다.
 
         ### status 값
         | 값 | 설명 |
         |---|---|
         | `PENDING` | 생성 대기 중 |
-        | `IN_PROGRESS` | 생성 중 |
+        | `GENERATING` | 생성 중 |
         | `COMPLETED` | 생성 완료 |
         | `FAILED` | 생성 실패 |
       operationId: getGenerateStatus
@@ -122,7 +124,7 @@ paths:
                   value:
                     success: true
                     data:
-                      projectId: proj_abc123
+                      projectId: 550e8400-e29b-41d4-a716-446655440000
                       status: PENDING
                       result: null
                     error: null
@@ -131,7 +133,7 @@ paths:
                   value:
                     success: true
                     data:
-                      projectId: proj_abc123
+                      projectId: 550e8400-e29b-41d4-a716-446655440000
                       status: COMPLETED
                       result:
                         fileTree:
@@ -165,7 +167,7 @@ paths:
                   value:
                     success: true
                     data:
-                      projectId: proj_abc123
+                      projectId: 550e8400-e29b-41d4-a716-446655440000
                       status: FAILED
                       result: null
                     error: null
@@ -198,6 +200,7 @@ paths:
         | `connected` | SSE 연결 수립 완료 |
         | `progress` | 생성 진행 상태 안내 메시지 |
         | `file_created` | 파일 또는 디렉토리 생성 완료 |
+        | `heartbeat` | SSE 연결 유지를 위한 주기 신호 |
         | `complete` | 전체 생성 완료 |
         | `error` | 생성 실패 |
 
@@ -208,6 +211,7 @@ paths:
         event: progress     (generating)
         event: file_created (directory: src/)
         event: file_created (file: Application.java)
+        event: heartbeat
         ...
         event: complete
         ```
@@ -227,7 +231,7 @@ paths:
                   summary: 연결 수립
                   value: |
                     event: connected
-                    data: {"projectId": "proj_abc123", "message": "연결되었습니다. 생성을 시작합니다."}
+                    data: {"projectId": "550e8400-e29b-41d4-a716-446655440000", "message": "연결되었습니다. 생성을 시작합니다."}
                 progress:
                   summary: 진행 상태
                   value: |
@@ -238,31 +242,37 @@ paths:
                   value: |
                     event: file_created
                     data: {"type": "file", "path": "src/main/java/Application.java", "depth": 3, "content": "..."}
+                heartbeat:
+                  summary: 연결 유지
+                  value: |
+                    event: heartbeat
+                    data: ping
                 complete:
                   summary: 생성 완료
                   value: |
                     event: complete
-                    data: {"projectId": "proj_abc123", "totalFiles": 12, "totalDirectories": 6, "message": "프로젝트 구조 생성이 완료되었습니다."}
+                    data: {"projectId": "550e8400-e29b-41d4-a716-446655440000", "totalFiles": 12, "totalDirectories": 6, "message": "프로젝트 구조 생성이 완료되었습니다."}
                 error:
                   summary: 생성 실패
                   value: |
                     event: error
                     data: {"code": "GENERATION_FAILED", "message": "AI 구조 생성에 실패했습니다. 다시 시도해 주세요."}
 
-  /projects/structures/{projectId}/files/{filePath}:
+  /projects/structures/{projectId}/files:
     get:
       tags:
         - Generate
       summary: 생성된 특정 파일 내용 조회
       description: |
         생성된 프로젝트의 특정 파일 내용을 반환한다.
-        `filePath`는 프로젝트 루트 기준 상대 경로를 사용한다.
+        `path`는 프로젝트 루트 기준 상대 경로를 사용한다.
+        파일 경로에는 `/`가 포함될 수 있으므로 path variable이 아니라 query string으로 전달한다.
         비로그인 사용자도 접근 가능하다.
       operationId: getGeneratedFileContent
       security: []
       parameters:
         - $ref: '#/components/parameters/ProjectId'
-        - in: path
+        - in: query
           name: filePath
           required: true
           schema:
@@ -366,8 +376,9 @@ components:
       required: true
       schema:
         type: string
+        format: uuid
       description: 프로젝트 생성 ID
-      example: proj_abc123
+      example: 550e8400-e29b-41d4-a716-446655440000
 
   responses:
     InternalError:
@@ -426,15 +437,17 @@ components:
       properties:
         projectId:
           type: string
+          format: uuid
           description: 프로젝트 ID
-          example: proj_abc123
+          example: 550e8400-e29b-41d4-a716-446655440000
     GenerateAcceptedData:
       type: object
       properties:
         projectId:
           type: string
+          format: uuid
           description: 프로젝트 생성 ID (상태 조회, SSE 연결, 다운로드에 사용)
-          example: proj_abc123
+          example: 550e8400-e29b-41d4-a716-446655440000
         status:
           type: string
           enum: [PENDING, IN_PROGRESS, COMPLETED, FAILED]
@@ -445,7 +458,8 @@ components:
       properties:
         projectId:
           type: string
-          example: proj_abc123
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
         status:
           type: string
           enum: [PENDING, IN_PROGRESS, COMPLETED, FAILED]
@@ -457,6 +471,7 @@ components:
           properties:
             fileTree:
               type: array
+              description: file_created 이벤트로 저장된 파일/디렉토리 목록에서 재구성한 트리
               items:
                 $ref: '#/components/schemas/FileTreeNode'
 
