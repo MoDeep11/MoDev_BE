@@ -1,6 +1,7 @@
 package modeep.modev.domain.structure.worker
 
-import modeep.modev.domain.structure.ProjectStore
+import modeep.modev.domain.project.entity.ProjectStatus
+import modeep.modev.domain.project.repository.ProjectRepository
 import modeep.modev.domain.structure.controller.dto.response.FileCreatedStreamResponse
 import modeep.modev.domain.structure.entity.StructureFile
 import modeep.modev.domain.structure.entity.vo.StructureFileType
@@ -12,8 +13,7 @@ import java.util.UUID
 
 @Service
 class StructureStatusService(
-    // TODO: ProjectStore 제거 필요
-    private val projectStore: ProjectStore,
+    private val projectRepository: ProjectRepository,
     private val structureFileRepository: StructureFileRepository,
 ) {
     // 비동기 처리 시 Transaction 풀이 너무 오랫동안 열려있는 것을 방지하기 위해 다른 컴포넌트에서 트랜잭션 처리
@@ -44,10 +44,11 @@ class StructureStatusService(
         structureFileRepository.save(structureFile)
     }
 
-    // todo: status 이넘 처리 및 store 삭제 필요
     @Transactional
     fun markGenerating(projectId: UUID) {
-        projectStore.updateStatus(projectId, "GENERATING")
+        updateProject(projectId) {
+            status = ProjectStatus.GENERATING
+        }
     }
 
     @Transactional
@@ -55,12 +56,25 @@ class StructureStatusService(
         projectId: UUID,
         result: String,
     ) {
-        projectStore.updateStatus(projectId, "COMPLETED")
-        projectStore.updateStructure(projectId, result)
+        updateProject(projectId) {
+            status = ProjectStatus.COMPLETED
+            structure = result
+        }
     }
 
     @Transactional
     fun markFailed(projectId: UUID) {
-        projectStore.updateStatus(projectId, "FAILED")
+        updateProject(projectId) {
+            status = ProjectStatus.FAILED
+        }
+    }
+
+    private fun updateProject(
+        projectId: UUID,
+        update: modeep.modev.domain.project.entity.Project.() -> Unit,
+    ) {
+        projectRepository
+            .findByIdAndDeletedAtIsNull(projectId.toString())
+            ?.apply(update)
     }
 }

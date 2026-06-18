@@ -2,7 +2,9 @@ package modeep.modev.domain.structure.service
 
 import io.awspring.cloud.s3.ObjectMetadata
 import io.awspring.cloud.s3.S3Template
-import modeep.modev.domain.structure.ProjectStore
+import modeep.modev.domain.project.entity.Project
+import modeep.modev.domain.project.entity.ProjectStatus
+import modeep.modev.domain.project.repository.ProjectRepository
 import modeep.modev.domain.structure.entity.StructureFile
 import modeep.modev.domain.structure.entity.vo.StructureFileType
 import modeep.modev.domain.structure.repository.StructureFileRepository
@@ -29,12 +31,12 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class DownloadStructureServiceTest {
-    private val projectStore = ProjectStore()
+    private val projectRepository = mock(ProjectRepository::class.java)
     private val structureFileRepository = mock(StructureFileRepository::class.java)
     private val s3Template = mock(S3Template::class.java)
     private val service =
         DownloadStructureService(
-            projectStore = projectStore,
+            projectRepository = projectRepository,
             structureFileRepository = structureFileRepository,
             zipArchiveService = ZipArchiveService(),
             s3StorageService =
@@ -49,6 +51,8 @@ class DownloadStructureServiceTest {
         val projectId = UUID.randomUUID()
         val inputCaptor = ArgumentCaptor.forClass(InputStream::class.java)
         val metadataCaptor = ArgumentCaptor.forClass(ObjectMetadata::class.java)
+        `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId.toString()))
+            .thenReturn(project(projectId, ProjectStatus.COMPLETED))
         `when`(structureFileRepository.findAllByProjectIdOrderByPathAsc(projectId))
             .thenReturn(
                 listOf(
@@ -97,6 +101,8 @@ class DownloadStructureServiceTest {
     @Test
     fun `throws project not found when no structure files exist`() {
         val projectId = UUID.randomUUID()
+        `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId.toString()))
+            .thenReturn(project(projectId, ProjectStatus.COMPLETED))
         `when`(structureFileRepository.findAllByProjectIdOrderByPathAsc(projectId))
             .thenReturn(emptyList())
 
@@ -110,6 +116,16 @@ class DownloadStructureServiceTest {
     }
 
     private fun String.toObjectKey(projectId: UUID): String = "$projectId/structures/downloads/$this"
+
+    private fun project(
+        projectId: UUID,
+        status: ProjectStatus,
+    ): Project =
+        Project(
+            id = projectId.toString(),
+            projectName = "test",
+            status = status,
+        )
 
     private fun assertZipContains(
         zip: ByteArray,

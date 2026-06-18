@@ -1,6 +1,8 @@
 package modeep.modev.domain.structure.service
 
-import modeep.modev.domain.structure.ProjectStore
+import modeep.modev.domain.project.entity.Project
+import modeep.modev.domain.project.entity.ProjectStatus
+import modeep.modev.domain.project.repository.ProjectRepository
 import modeep.modev.domain.structure.entity.StructureFile
 import modeep.modev.domain.structure.entity.vo.StructureFileType
 import modeep.modev.domain.structure.repository.StructureFileRepository
@@ -14,17 +16,19 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class GetStructureStatusServiceTest {
-    private val projectStore = ProjectStore()
+    private val projectRepository = mock(ProjectRepository::class.java)
     private val structureFileRepository = mock(StructureFileRepository::class.java)
     private val service =
         GetStructureStatusService(
-            projectStore = projectStore,
+            projectRepository = projectRepository,
             structureFileRepository = structureFileRepository,
         )
 
     @Test
     fun `returns pending status without result`() {
         val projectId = UUID.randomUUID()
+        `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId.toString()))
+            .thenReturn(project(projectId, ProjectStatus.PENDING))
 
         val response = service.execute(projectId)
 
@@ -37,7 +41,8 @@ class GetStructureStatusServiceTest {
     @Test
     fun `returns completed status with rebuilt file tree`() {
         val projectId = UUID.randomUUID()
-        projectStore.updateStatus(projectId, "COMPLETED")
+        `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId.toString()))
+            .thenReturn(project(projectId, ProjectStatus.COMPLETED))
         `when`(structureFileRepository.findAllByProjectIdOrderByPathAsc(projectId))
             .thenReturn(
                 listOf(
@@ -69,4 +74,14 @@ class GetStructureStatusServiceTest {
         assertEquals("Application.kt", fileTree[0].children.single().children.single().children.single().name)
         assertEquals("FILE", fileTree[1].type)
     }
+
+    private fun project(
+        projectId: UUID,
+        status: ProjectStatus,
+    ): Project =
+        Project(
+            id = projectId.toString(),
+            projectName = "test",
+            status = status,
+        )
 }

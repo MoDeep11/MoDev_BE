@@ -1,6 +1,10 @@
 package modeep.modev.domain.structure.service
 
-import modeep.modev.domain.structure.ProjectStore
+import modeep.modev.domain.catalog.repository.DependencyRepository
+import modeep.modev.domain.catalog.repository.FieldRepository
+import modeep.modev.domain.catalog.repository.TechStackRepository
+import modeep.modev.domain.project.entity.ProjectStatus
+import modeep.modev.domain.project.repository.ProjectRepository
 import modeep.modev.domain.structure.controller.dto.request.GenerateStructureRequest
 import modeep.modev.domain.structure.controller.dto.response.GenerateStructureResponse
 import modeep.modev.domain.structure.worker.event.DependencyInfos
@@ -15,30 +19,38 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class GenerateStructureService(
-    private val projectRepository: ProjectStore,
+    private val projectRepository: ProjectRepository,
+    private val fieldRepository: FieldRepository,
+    private val techStackRepository: TechStackRepository,
+    private val dependencyRepository: DependencyRepository,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
     @Transactional
     fun execute(request: GenerateStructureRequest): GenerateStructureResponse {
-        // todo: fetch join 사용하여 쿼리 - n+1 방지
+        val projectId = request.projectId.toString()
         val project =
-            projectRepository.get(request.projectId)
+            projectRepository.findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
+        val fields = fieldRepository.findByProjectId(projectId)
+        val techStacks = techStackRepository.findByProjectId(projectId)
+        val dependencies = dependencyRepository.findByProjectId(projectId)
+
+        project.status = ProjectStatus.PENDING
 
         eventPublisher.publishEvent(
             GenerateStructureEvent(
-                projectId = project.id,
-                projectName = project.name,
+                projectId = request.projectId,
+                projectName = project.projectName,
                 fields =
-                    project.fields.map {
+                    fields.map {
                         FieldInfos.from(it)
                     },
                 techStacks =
-                    project.techStacks.map {
+                    techStacks.map {
                         StackInfos.from(it)
                     },
                 dependencies =
-                    project.dependencies.map {
+                    dependencies.map {
                         // todo: 당장에 에러는 없으나 n+1 발생 가능
                         DependencyInfos.from(it, it.techStack)
                     },
@@ -46,7 +58,7 @@ class GenerateStructureService(
         )
 
         return GenerateStructureResponse(
-            projectId = project.id,
+            projectId = request.projectId,
             status = "PENDING",
         )
     }
