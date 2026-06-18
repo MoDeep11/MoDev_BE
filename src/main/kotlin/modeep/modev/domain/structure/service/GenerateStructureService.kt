@@ -51,7 +51,6 @@ class GenerateStructureService(
                     },
                 dependencies =
                     dependencies.map {
-                        // todo: 당장에 에러는 없으나 n+1 발생 가능
                         DependencyInfos.from(it, it.techStack)
                     },
             ),
