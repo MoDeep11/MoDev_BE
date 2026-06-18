@@ -1,11 +1,14 @@
 package modeep.modev.domain.structure.worker
 
+import modeep.modev.domain.project.entity.Project
 import modeep.modev.domain.project.entity.ProjectStatus
 import modeep.modev.domain.project.repository.ProjectRepository
 import modeep.modev.domain.structure.controller.dto.response.FileCreatedStreamResponse
 import modeep.modev.domain.structure.entity.StructureFile
 import modeep.modev.domain.structure.entity.vo.StructureFileType
 import modeep.modev.domain.structure.repository.StructureFileRepository
+import modeep.modev.global.exception.BusinessException
+import modeep.modev.global.exception.error.ProjectErrorCode
 import modeep.modev.global.util.LanguageDetector.detect
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -71,10 +74,13 @@ class StructureStatusService(
 
     private fun updateProject(
         projectId: UUID,
-        update: modeep.modev.domain.project.entity.Project.() -> Unit,
+        update: Project.() -> Unit,
     ) {
-        projectRepository
-            .findByIdAndDeletedAtIsNull(projectId.toString())
-            ?.apply(update)
+        val project =
+            projectRepository
+                .findByIdAndDeletedAtIsNull(projectId.toString())
+                ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
+
+        project.apply(update)
     }
 }
