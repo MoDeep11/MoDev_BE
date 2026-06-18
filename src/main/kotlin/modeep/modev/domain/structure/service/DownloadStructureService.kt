@@ -1,7 +1,8 @@
 package modeep.modev.domain.structure.service
 
-import modeep.modev.domain.structure.Project
-import modeep.modev.domain.structure.ProjectStore
+import modeep.modev.domain.project.entity.Project
+import modeep.modev.domain.project.entity.ProjectStatus
+import modeep.modev.domain.project.repository.ProjectRepository
 import modeep.modev.domain.structure.controller.dto.response.DownloadStructureResponse
 import modeep.modev.domain.structure.entity.vo.StructureFileType
 import modeep.modev.domain.structure.repository.StructureFileRepository
@@ -20,7 +21,7 @@ import java.util.UUID
 
 @Service
 class DownloadStructureService(
-    private val projectStore: ProjectStore,
+    private val projectRepository: ProjectRepository,
     private val structureFileRepository: StructureFileRepository,
     private val zipArchiveService: ZipArchiveService,
     private val s3StorageService: S3StorageService,
@@ -30,7 +31,7 @@ class DownloadStructureService(
 
         val expiration = Duration.ofHours(1)
         val expiresAt = OffsetDateTime.now(ZoneOffset.UTC).plus(expiration)
-        val fileName = "${project.name.toSafeFileName()}_${DateTimeFormatter.BASIC_ISO_DATE.format(expiresAt.toLocalDate())}.zip"
+        val fileName = "${project.projectName.toSafeFileName()}_${DateTimeFormatter.BASIC_ISO_DATE.format(expiresAt.toLocalDate())}.zip"
         val objectKey = "$projectId/structures/downloads/$fileName"
         val zip = createZip(projectId)
 
@@ -50,11 +51,10 @@ class DownloadStructureService(
 
     fun findByProjectId(projectId: UUID): Project {
         val project =
-            projectStore.get(projectId)
+            projectRepository.findByIdAndDeletedAtIsNull(projectId.toString())
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
-        // todo: enum으로 변경
-        return if (project.status == "COMPLETED") {
+        return if (project.status == ProjectStatus.COMPLETED) {
             project
         } else {
             throw BusinessException(ProjectErrorCode.PROJECT_NOT_COMPLETED)
@@ -62,7 +62,7 @@ class DownloadStructureService(
     }
 
     private fun createZip(projectId: UUID): ByteArray {
-        projectStore.get(projectId)
+        projectRepository.findByIdAndDeletedAtIsNull(projectId.toString())
             ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
         val files = structureFileRepository.findAllByProjectIdOrderByPathAsc(projectId)

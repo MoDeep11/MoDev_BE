@@ -1,6 +1,7 @@
 package modeep.modev.domain.structure.service
 
-import modeep.modev.domain.structure.ProjectStore
+import modeep.modev.domain.project.entity.ProjectStatus
+import modeep.modev.domain.project.repository.ProjectRepository
 import modeep.modev.domain.structure.controller.dto.response.FileTreeNodeResponse
 import modeep.modev.domain.structure.controller.dto.response.GetStructureStatusResponse
 import modeep.modev.domain.structure.controller.dto.response.StructureResultResponse
@@ -15,18 +16,18 @@ import java.util.UUID
 
 @Service
 class GetStructureStatusService(
-    private val projectStore: ProjectStore,
+    private val projectRepository: ProjectRepository,
     private val structureFileRepository: StructureFileRepository,
 ) {
     @Transactional(readOnly = true)
     fun execute(projectId: UUID): GetStructureStatusResponse {
         val project =
-            projectStore.get(projectId)
+            projectRepository.findByIdAndDeletedAtIsNull(projectId.toString())
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
-        val status = project.status ?: "PENDING"
+        val status = project.status
         val result =
-            if (status == "COMPLETED") {
+            if (status == ProjectStatus.COMPLETED) {
                 StructureResultResponse(
                     fileTree = buildFileTree(structureFileRepository.findAllByProjectIdOrderByPathAsc(projectId)),
                 )
@@ -35,8 +36,8 @@ class GetStructureStatusService(
             }
 
         return GetStructureStatusResponse(
-            projectId = project.id.toString(),
-            status = status,
+            projectId = project.id,
+            status = status.name,
             result = result,
         )
     }
