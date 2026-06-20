@@ -8,6 +8,7 @@ import modeep.modev.domain.auth.controller.dto.request.SignupRequest
 import modeep.modev.domain.auth.controller.dto.request.VerifyCode
 import modeep.modev.domain.auth.controller.dto.response.LoginResponse
 import modeep.modev.domain.auth.service.LoginService
+import modeep.modev.domain.auth.service.LogoutService
 import modeep.modev.domain.auth.service.SignupService
 import modeep.modev.domain.auth.service.TokenRefreshService
 import modeep.modev.global.exception.BusinessException
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController
 class AuthController(
     private val signupService: SignupService,
     private val loginService: LoginService,
+    private val logoutService: LogoutService,
     private val tokenRefreshService: TokenRefreshService,
     private val mailService: MailService,
 ) {
@@ -95,11 +97,18 @@ class AuthController(
     }
 
     @PostMapping("/logout")
-    fun logout(): ApiResponse =
-        ApiResponse(
+    fun logout(
+        @CookieValue(name = REFRESH_TOKEN_COOKIE, defaultValue = "") refreshToken: String,
+        response: HttpServletResponse,
+    ): ApiResponse {
+        logoutService.execute(refreshToken)
+        clearRefreshTokenCookies(response)
+
+        return ApiResponse(
             success = true,
             data = null,
         )
+    }
 
     private fun setRefreshTokenCookie(
         response: HttpServletResponse,
@@ -111,14 +120,31 @@ class AuthController(
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
-                .path(REFRESH_TOKEN_PATH)
+                .path(REFRESH_TOKEN_COOKIE_PATH)
                 .build()
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString())
     }
 
+    private fun clearRefreshTokenCookies(response: HttpServletResponse) {
+        listOf(REFRESH_TOKEN_COOKIE_PATH, LEGACY_REFRESH_TOKEN_COOKIE_PATH).forEach { path ->
+            val cookie =
+                ResponseCookie
+                    .from(REFRESH_TOKEN_COOKIE, "")
+                    .httpOnly(true)
+                    .secure(true)
+                    .sameSite("Strict")
+                    .path(path)
+                    .maxAge(0)
+                    .build()
+
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString())
+        }
+    }
+
     private companion object {
         const val REFRESH_TOKEN_COOKIE = "refreshToken"
-        const val REFRESH_TOKEN_PATH = "/auth/token/refresh"
+        const val REFRESH_TOKEN_COOKIE_PATH = "/auth"
+        const val LEGACY_REFRESH_TOKEN_COOKIE_PATH = "/auth/token/refresh"
     }
 }

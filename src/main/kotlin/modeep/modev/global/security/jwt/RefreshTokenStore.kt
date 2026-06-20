@@ -38,6 +38,10 @@ class RefreshTokenStore(
         return result == 1L
     }
 
+    fun delete(refreshToken: String) {
+        redisTemplate.delete(key(refreshToken))
+    }
+
     private fun key(refreshToken: String): String = "$KEY_PREFIX${sha256(refreshToken)}"
 
     private fun sha256(value: String): String =
