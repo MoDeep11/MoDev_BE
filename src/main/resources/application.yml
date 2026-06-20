@@ -91,6 +91,14 @@ stream:
     timeout-millis: 600000 # 10분
     heartbeat-interval-millis: 30000 # 30초
 
+catalog:
+  registry:
+    sync:
+      enabled: ${CATALOG_REGISTRY_SYNC_ENABLED:true}
+      cron: ${CATALOG_REGISTRY_SYNC_CRON:0 0 3 * * *}
+      timeout-millis: ${CATALOG_REGISTRY_SYNC_TIMEOUT_MILLIS:5000}
+      github-token: ${GITHUB_TOKEN:}
+
 # Springdoc (비활성화)
 springdoc:
   api-docs:
