@@ -1,0 +1,16 @@
+package modeep.modev.domain.auth.controller.dto.response
+
+import modeep.modev.domain.auth.entity.User
+
+data class EmailVerificationResponse(
+    val userId: String,
+    val status: String,
+) {
+    companion object {
+        fun from(user: User): EmailVerificationResponse =
+            EmailVerificationResponse(
+                userId = "user_${user.id}",
+                status = user.status.name,
+            )
+    }
+}

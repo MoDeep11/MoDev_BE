@@ -5,13 +5,14 @@ import jakarta.validation.Valid
 import modeep.modev.domain.auth.controller.dto.request.EmailVerificationSendRequest
 import modeep.modev.domain.auth.controller.dto.request.LoginRequest
 import modeep.modev.domain.auth.controller.dto.request.SignupRequest
+import modeep.modev.domain.auth.controller.dto.request.VerifyCode
 import modeep.modev.domain.auth.controller.dto.response.LoginResponse
-import modeep.modev.domain.auth.service.EmailVerificationSendService
 import modeep.modev.domain.auth.service.LoginService
 import modeep.modev.domain.auth.service.SignupService
 import modeep.modev.domain.auth.service.TokenRefreshService
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.AuthErrorCode
+import modeep.modev.global.mail.MailService
 import modeep.modev.global.response.ApiResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -29,7 +30,7 @@ class AuthController(
     private val signupService: SignupService,
     private val loginService: LoginService,
     private val tokenRefreshService: TokenRefreshService,
-    private val emailVerificationSendService: EmailVerificationSendService,
+    private val mailService: MailService,
 ) {
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
@@ -71,14 +72,25 @@ class AuthController(
         )
     }
 
-    @PostMapping("/email/resend")
-    fun sendVerificationEmail(
+    @PostMapping("/email/send")
+    fun sendVerificationCode(
         @Valid @RequestBody request: EmailVerificationSendRequest,
     ): ApiResponse {
-        emailVerificationSendService.execute(request)
+        mailService.sendVerificationCode(request)
         return ApiResponse(
             success = true,
             data = null,
+        )
+    }
+
+    @PostMapping("/email/verify")
+    fun verifyAuthCode(
+        @Valid @RequestBody request: VerifyCode,
+    ): ApiResponse {
+        return ApiResponse(
+            success = true,
+            data = mailService.checkAuthCode(request),
+            error = null,
         )
     }
 
