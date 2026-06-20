@@ -175,8 +175,8 @@ class CatalogRegistrySyncService(
         publicId: String,
     ): Long =
         when (targetType) {
-            CatalogRegistryTargetType.TECH_STACK -> findTechStack(publicId).id
-            CatalogRegistryTargetType.DEPENDENCY -> findDependency(publicId).id
+            CatalogRegistryTargetType.TECH_STACK -> requireNotNull(findTechStack(publicId).id)
+            CatalogRegistryTargetType.DEPENDENCY -> requireNotNull(findDependency(publicId).id)
         }
 
     private fun findTechStack(publicId: String): TechStack =
