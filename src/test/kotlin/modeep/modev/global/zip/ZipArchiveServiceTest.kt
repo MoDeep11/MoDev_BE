@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 import java.util.zip.ZipInputStream
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class ZipArchiveServiceTest {
@@ -44,7 +45,7 @@ class ZipArchiveServiceTest {
             service.create(
                 listOf(
                     ZipArchiveEntry(
-                        path = " / ",
+                        path = " ",
                         type = ZipArchiveEntryType.FILE,
                         content = "ignored",
                     ),
@@ -59,6 +60,21 @@ class ZipArchiveServiceTest {
         val entries = unzip(zip)
 
         assertEquals(setOf("README.md"), entries.keys)
+    }
+
+    @Test
+    fun `throws when path contains blank segment`() {
+        assertFailsWith<IllegalArgumentException> {
+            service.create(
+                listOf(
+                    ZipArchiveEntry(
+                        path = " / ",
+                        type = ZipArchiveEntryType.FILE,
+                        content = "ignored",
+                    ),
+                ),
+            )
+        }
     }
 
     private fun unzip(zip: ByteArray): Map<String, String> {
