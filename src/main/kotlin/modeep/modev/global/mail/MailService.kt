@@ -11,6 +11,7 @@ class MailService(
     private val javaMailSender: JavaMailSender,
     private val mailProperties: MailProperties,
 ) {
+    // todo: async 처리
     fun send(message: MailMessage) {
         val mimeMessage = javaMailSender.createMimeMessage()
         val helper = MimeMessageHelper(mimeMessage, false, Charsets.UTF_8.name())
