@@ -3,7 +3,6 @@ package modeep.modev.domain.project.service
 import modeep.modev.domain.catalog.entity.Field
 import modeep.modev.domain.catalog.entity.TechStack
 import modeep.modev.domain.catalog.entity.vo.Category
-import modeep.modev.domain.catalog.entity.vo.Ecosystem
 import modeep.modev.domain.catalog.repository.DependencyRepository
 import modeep.modev.domain.catalog.repository.FieldRepository
 import modeep.modev.domain.catalog.repository.TechStackRepository
@@ -61,7 +60,6 @@ class PostProjectServiceTest {
                 id = 1L,
                 publicId = "react",
                 name = "React",
-                ecosystem = Ecosystem.NODE,
                 category = Category.FRAMEWORK,
                 field = field,
             )
