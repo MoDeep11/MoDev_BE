@@ -11,7 +11,6 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.UUID
 
 @Service
 class SignupService(
@@ -33,7 +32,6 @@ class SignupService(
 
         val user =
             User(
-                publicId = generatePublicId(),
                 email = email,
                 passwordHash = passwordEncoder.encode(request.password),
                 status = UserStatus.UNVERIFIED,
@@ -54,8 +52,6 @@ class SignupService(
             throw BusinessException(AuthErrorCode.INVALID_PASSWORD_FORMAT)
         }
     }
-
-    private fun generatePublicId(): String = "user_${UUID.randomUUID()}"
 
     companion object {
         private val PASSWORD_PATTERN =
