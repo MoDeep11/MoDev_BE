@@ -17,8 +17,9 @@ enum class AuthErrorCode(
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH-007", "리프레시 토큰이 만료되었습니다. 다시 로그인해주세요."),
     REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "AUTH-008", "유효하지 않은 리프레시 토큰입니다."),
     REFRESH_TOKEN_REUSED(HttpStatus.UNAUTHORIZED, "AUTH-009", "보안 이상이 감지되어 전체 세션이 만료되었습니다. 다시 로그인해주세요."),
-    VERIFY_TOKEN_INVALID(HttpStatus.BAD_REQUEST, "AUTH-010", "유효하지 않은 인증 링크입니다."),
+    VERIFY_CODE_INVALID(HttpStatus.BAD_REQUEST, "AUTH-010", "유효하지 않은 인증 코드입니다."),
     ALREADY_VERIFIED(HttpStatus.CONFLICT, "AUTH-011", "이미 인증이 완료된 계정입니다."),
-    VERIFY_TOKEN_EXPIRED(HttpStatus.GONE, "AUTH-012", "인증 링크가 만료되었습니다. 인증 이메일을 재발송해주세요."),
+    VERIFY_CODE_EXPIRED(HttpStatus.GONE, "AUTH-012", "인증 코드가 만료되었습니다. 인증 코드를 다시 요청해주세요."),
     RESEND_RATE_LIMIT(HttpStatus.TOO_MANY_REQUESTS, "AUTH-013", "잠시 후 다시 시도해주세요. (1분에 1회 제한)"),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH-014", "사용자를 찾을 수 없습니다."),
 }
