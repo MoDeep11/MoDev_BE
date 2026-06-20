@@ -13,10 +13,10 @@ class SecurityConfig {
             .csrf { it.disable() }
             .authorizeHttpRequests {
                 it
-                    .requestMatchers("/auth/signup", "/auth/login")
-                    .permitAll()
-                    .anyRequest()
+                    .requestMatchers("/auth/logout", "/auth/token/refresh")
                     .authenticated()
+                    .anyRequest()
+                    .permitAll()
             }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
