@@ -6,7 +6,11 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
 interface DependencyRepository : JpaRepository<Dependency, Long> {
+    fun findByPublicId(publicId: String): Dependency?
+
     fun findByPublicIdIn(publicIds: Collection<String>): List<Dependency>
+
+    fun findByRegistryAutoSyncTrueAndRegistryTypeIsNotNullAndRegistryIdentifierIsNotNull(): List<Dependency>
 
     @Query(
         """
