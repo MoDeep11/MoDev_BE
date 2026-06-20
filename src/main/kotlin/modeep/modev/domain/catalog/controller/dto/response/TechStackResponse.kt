@@ -8,6 +8,7 @@ data class TechStackResponse(
     val category: String,
     val name: String,
     val description: String?,
+    val version: String?,
     val iconUrl: String?,
 ) {
     companion object {
@@ -18,6 +19,7 @@ data class TechStackResponse(
                 category = techStack.category.name,
                 name = techStack.name,
                 description = techStack.description,
+                version = techStack.version,
                 iconUrl = techStack.iconUrl,
             )
     }
