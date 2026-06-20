@@ -7,6 +7,7 @@ import modeep.modev.domain.auth.repository.UserRepository
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.AuthErrorCode
 import modeep.modev.global.security.jwt.JwtTokenProvider
+import modeep.modev.global.security.jwt.RefreshTokenStore
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verifyNoInteractions
@@ -20,6 +21,7 @@ class LoginServiceTest {
     private lateinit var userRepository: UserRepository
     private lateinit var passwordEncoder: PasswordEncoder
     private lateinit var jwtTokenProvider: JwtTokenProvider
+    private lateinit var refreshTokenStore: RefreshTokenStore
     private lateinit var loginService: LoginService
 
     @BeforeEach
@@ -27,7 +29,8 @@ class LoginServiceTest {
         userRepository = mock(UserRepository::class.java)
         passwordEncoder = mock(PasswordEncoder::class.java)
         jwtTokenProvider = mock(JwtTokenProvider::class.java)
-        loginService = LoginService(userRepository, passwordEncoder, jwtTokenProvider)
+        refreshTokenStore = mock(RefreshTokenStore::class.java)
+        loginService = LoginService(userRepository, passwordEncoder, jwtTokenProvider, refreshTokenStore)
     }
 
     @Test
@@ -36,7 +39,10 @@ class LoginServiceTest {
         `when`(userRepository.findByEmailIgnoreCase("user@example.com")).thenReturn(user)
         `when`(passwordEncoder.matches("Password1!", user.passwordHash)).thenReturn(true)
         `when`(jwtTokenProvider.generateAccessToken(user)).thenReturn("access-token")
+        `when`(jwtTokenProvider.generateRefreshToken(user)).thenReturn("refresh-token")
         `when`(jwtTokenProvider.accessTokenExpiresInSeconds).thenReturn(3600)
+        `when`(jwtTokenProvider.refreshTokenExpiresInSeconds).thenReturn(1209600)
+        `when`(jwtTokenProvider.refreshTokenExpirationMillis).thenReturn(1209600000)
 
         val response =
             loginService.execute(
@@ -49,7 +55,7 @@ class LoginServiceTest {
         assertEquals("access-token", response.accessToken)
         assertEquals("Bearer", response.tokenType)
         assertEquals(3600, response.expiresIn)
-        assertEquals("user_123", response.user.userId)
+        assertEquals(1L, response.user.userId)
         assertEquals("user@example.com", response.user.email)
         assertEquals("ACTIVE", response.user.status)
     }
@@ -114,7 +120,7 @@ class LoginServiceTest {
 
     private fun activeUser(status: UserStatus = UserStatus.ACTIVE) =
         User(
-            publicId = "user_123",
+            id = 1L,
             email = "user@example.com",
             passwordHash = "encoded-password",
             status = status,
