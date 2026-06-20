@@ -1,7 +1,7 @@
 package modeep.modev.domain.catalog.registry.client
 
 import modeep.modev.domain.catalog.entity.vo.RegistryType
-import modeep.modev.domain.catalog.registry.response.RegistryVersionResult
+import modeep.modev.domain.catalog.registry.client.response.RegistryVersionResult
 
 interface RegistryClient {
     fun supports(registryType: RegistryType): Boolean
