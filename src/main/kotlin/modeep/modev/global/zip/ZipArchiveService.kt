@@ -33,7 +33,7 @@ class ZipArchiveService {
     }
 
     private fun sanitizeEntryPath(rawPath: String): String? {
-        val normalized = rawPath.replace('\\', '/').trim('/')
+        val normalized = rawPath.replace('\\', '/').trim().trim('/')
 
         if (normalized.isBlank()) return null
 
