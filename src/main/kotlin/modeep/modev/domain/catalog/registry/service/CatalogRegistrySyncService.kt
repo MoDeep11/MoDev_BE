@@ -2,28 +2,22 @@ package modeep.modev.domain.catalog.registry.service
 
 import modeep.modev.domain.catalog.controller.dto.response.registry.CatalogRegistrySyncResponse
 import modeep.modev.domain.catalog.controller.dto.response.registry.CatalogRegistryVersionsResponse
-import modeep.modev.domain.catalog.entity.CatalogRegistryVersion
 import modeep.modev.domain.catalog.entity.Dependency
 import modeep.modev.domain.catalog.entity.TechStack
-import modeep.modev.domain.catalog.entity.id.CatalogRegistryVersionId
 import modeep.modev.domain.catalog.entity.vo.RegistryType
 import modeep.modev.domain.catalog.registry.client.RegistryClient
-import modeep.modev.domain.catalog.registry.util.RegistryVersionSelector
 import modeep.modev.domain.catalog.registry.vo.CatalogRegistryTargetType
-import modeep.modev.domain.catalog.repository.CatalogRegistryVersionRepository
 import modeep.modev.domain.catalog.repository.DependencyRepository
 import modeep.modev.domain.catalog.repository.TechStackRepository
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.RegistryErrorCode
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
-import java.time.Instant
 
 @Service
 class CatalogRegistrySyncService(
     private val techStackRepository: TechStackRepository,
     private val dependencyRepository: DependencyRepository,
-    private val catalogRegistryVersionRepository: CatalogRegistryVersionRepository,
+    private val catalogRegistrySyncWriter: CatalogRegistrySyncWriter,
     clients: List<RegistryClient>,
 ) {
     private val clientsByType =
@@ -53,97 +47,13 @@ class CatalogRegistrySyncService(
     }
 
     // 조회한 최신 버전 저장
-    @Transactional
     fun sync(
         targetType: CatalogRegistryTargetType,
         publicId: String,
     ): CatalogRegistrySyncResponse {
         val fetched = fetchVersions(targetType, publicId)
-        val latestVersion = fetched.latestVersion ?: throw BusinessException(RegistryErrorCode.VERSION_NOT_FOUND)
-        val targetId = findTargetId(targetType, publicId)
 
-        saveFetchedVersions(targetId, fetched)
-        recordSyncSuccess(targetType, publicId, fetched.fetchedAt)
-
-        return CatalogRegistrySyncResponse(
-            targetType = targetType,
-            publicId = publicId,
-            version = latestVersion,
-            syncedAt = fetched.fetchedAt,
-        )
-    }
-
-    private fun saveFetchedVersions(
-        targetId: Long,
-        fetched: CatalogRegistryVersionsResponse,
-    ) {
-        val latestVersion = fetched.latestVersion ?: throw BusinessException(RegistryErrorCode.VERSION_NOT_FOUND)
-        val fetchedVersions =
-            fetched.versions
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-                .distinct()
-
-        if (fetchedVersions.isEmpty()) {
-            throw BusinessException(RegistryErrorCode.VERSION_NOT_FOUND)
-        }
-
-        val existingVersions =
-            catalogRegistryVersionRepository.findByIdTargetTypeAndIdTargetId(
-                targetType = fetched.targetType,
-                targetId = targetId,
-            )
-        val existingByVersion = existingVersions.associateBy { it.version }
-
-        val fetchedEntities =
-            fetchedVersions.map { version ->
-                existingByVersion[version]?.apply {
-                    markLatest(
-                        latest = version == latestVersion,
-                        fetchedAt = fetched.fetchedAt,
-                    )
-                } ?: CatalogRegistryVersion(
-                    id =
-                        CatalogRegistryVersionId(
-                            targetType = fetched.targetType,
-                            targetId = targetId,
-                            version = version,
-                        ),
-                    isLatest = version == latestVersion,
-                    isStable = RegistryVersionSelector.isStable(version),
-                    fetchedAt = fetched.fetchedAt,
-                )
-            }
-        val staleLatestVersions =
-            existingVersions
-                .filter { it.version !in fetchedVersions && it.isLatest }
-                .onEach {
-                    it.markLatest(
-                        latest = false,
-                        fetchedAt = fetched.fetchedAt,
-                    )
-                }
-
-        catalogRegistryVersionRepository.saveAll(fetchedEntities + staleLatestVersions)
-    }
-
-    private fun recordSyncSuccess(
-        targetType: CatalogRegistryTargetType,
-        publicId: String,
-        syncedAt: Instant,
-    ) {
-        when (targetType) {
-            CatalogRegistryTargetType.TECH_STACK ->
-                findTechStack(publicId).also {
-                    it.recordRegistrySyncSuccess(syncedAt)
-                    techStackRepository.save(it)
-                }
-            CatalogRegistryTargetType.DEPENDENCY ->
-                findDependency(publicId).also {
-                    it.recordRegistrySyncSuccess(syncedAt)
-                    dependencyRepository.save(it)
-                }
-        }
+        return catalogRegistrySyncWriter.save(fetched)
     }
 
     // RegistryType에 정의되어있는 클라이언트를 가져옵니다
@@ -168,15 +78,6 @@ class CatalogRegistrySyncService(
                 findDependency(publicId).let {
                     RegistryTarget(it.registryType, it.registryIdentifier)
                 }
-        }
-
-    private fun findTargetId(
-        targetType: CatalogRegistryTargetType,
-        publicId: String,
-    ): Long =
-        when (targetType) {
-            CatalogRegistryTargetType.TECH_STACK -> requireNotNull(findTechStack(publicId).id)
-            CatalogRegistryTargetType.DEPENDENCY -> requireNotNull(findDependency(publicId).id)
         }
 
     private fun findTechStack(publicId: String): TechStack =
