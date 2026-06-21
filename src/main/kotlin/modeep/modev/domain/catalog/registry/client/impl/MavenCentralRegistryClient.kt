@@ -16,26 +16,42 @@ class MavenCentralRegistryClient(
     properties: CatalogRegistryProperties,
 ) : RegistryClientSupport(objectMapper, properties),
     RegistryClient {
+    private companion object {
+        const val PAGE_SIZE = 100
+    }
+
     override fun supports(registryType: RegistryType): Boolean = registryType == RegistryType.MAVEN_CENTRAL
 
     override fun fetchVersions(identifier: String): RegistryVersionResult {
         val (groupId, artifactId) = parseIdentifier(identifier)
-        val url =
-            UriComponentsBuilder
-                .fromUriString("https://search.maven.org/solrsearch/select")
-                .queryParam("q", "g:$groupId AND a:$artifactId")
-                .queryParam("core", "gav")
-                .queryParam("rows", 20)
-                .queryParam("wt", "json")
-                .build()
-                .encode()
-                .toUriString()
+        val versions = mutableListOf<String>()
+        var start = 0
+        var totalCount: Int
 
-        val versions =
-            getJson(url)
-                .path("response")
-                .path("docs")
-                .mapNotNull { it.path("v").takeIf { version -> version.isTextual }?.asText() }
+        do {
+            val url =
+                UriComponentsBuilder
+                    .fromUriString("https://search.maven.org/solrsearch/select")
+                    .queryParam("q", "g:$groupId AND a:$artifactId")
+                    .queryParam("core", "gav")
+                    .queryParam("rows", PAGE_SIZE)
+                    .queryParam("start", start)
+                    .queryParam("sort", "timestamp desc")
+                    .queryParam("wt", "json")
+                    .build()
+                    .encode()
+                    .toUriString()
+
+            val response = getJson(url).path("response")
+            totalCount = response.path("numFound").asInt(0)
+            val docs = response.path("docs")
+            val pageVersions =
+                docs
+                    .mapNotNull { it.path("v").takeIf { version -> version.isTextual }?.asText() }
+
+            versions.addAll(pageVersions)
+            start += docs.size()
+        } while (docs.size() > 0 && start < totalCount)
 
         return RegistryVersionResult(
             latestVersion = RegistryVersionSelector.latestStable(versions),

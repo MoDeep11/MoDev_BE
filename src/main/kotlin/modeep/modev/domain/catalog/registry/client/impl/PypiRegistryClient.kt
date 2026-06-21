@@ -29,6 +29,7 @@ class PypiRegistryClient(
                 json.path("info").path("version")
                     .takeIf { it.isTextual }
                     ?.asText()
+                    ?.takeIf { RegistryVersionSelector.isStable(it) }
                     ?: RegistryVersionSelector.latestStable(versions),
             versions = versions,
         )

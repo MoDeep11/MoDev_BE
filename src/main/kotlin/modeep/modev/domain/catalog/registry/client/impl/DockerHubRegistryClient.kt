@@ -17,16 +17,32 @@ class DockerHubRegistryClient(
     properties: CatalogRegistryProperties,
 ) : RegistryClientSupport(objectMapper, properties),
     RegistryClient {
+    private companion object {
+        const val PAGE_SIZE = 100
+    }
+
     override fun supports(registryType: RegistryType): Boolean = registryType == RegistryType.DOCKER_HUB
 
     override fun fetchVersions(identifier: String): RegistryVersionResult {
         val (namespace, image) = parseIdentifier(identifier)
         val encodedNamespace = UriUtils.encodePathSegment(namespace, StandardCharsets.UTF_8)
         val encodedImage = UriUtils.encodePathSegment(image, StandardCharsets.UTF_8)
-        val versions =
-            getJson("https://hub.docker.com/v2/repositories/$encodedNamespace/$encodedImage/tags?page_size=20")
-                .path("results")
-                .mapNotNull { it.path("name").takeIf { version -> version.isTextual }?.asText() }
+        val versions = mutableListOf<String>()
+        var nextUrl: String? =
+            "https://hub.docker.com/v2/repositories/$encodedNamespace/$encodedImage/tags?page_size=$PAGE_SIZE"
+
+        while (nextUrl != null) {
+            val json = getJson(nextUrl)
+            val pageVersions =
+                json.path("results")
+                    .mapNotNull { it.path("name").takeIf { version -> version.isTextual }?.asText() }
+
+            versions.addAll(pageVersions)
+            nextUrl =
+                json.path("next")
+                    .takeIf { it.isTextual && it.asText().isNotBlank() }
+                    ?.asText()
+        }
 
         return RegistryVersionResult(
             latestVersion = RegistryVersionSelector.latestStable(versions),

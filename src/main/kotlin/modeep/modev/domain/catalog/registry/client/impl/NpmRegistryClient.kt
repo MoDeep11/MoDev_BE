@@ -29,6 +29,7 @@ class NpmRegistryClient(
                 json.path("dist-tags").path("latest")
                     .takeIf { it.isTextual }
                     ?.asText()
+                    ?.takeIf { RegistryVersionSelector.isStable(it) }
                     ?: RegistryVersionSelector.latestStable(versions),
             versions = versions,
         )

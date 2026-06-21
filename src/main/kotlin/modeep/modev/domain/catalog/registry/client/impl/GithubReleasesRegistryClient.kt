@@ -17,6 +17,10 @@ class GithubReleasesRegistryClient(
     private val properties: CatalogRegistryProperties,
 ) : RegistryClientSupport(objectMapper, properties),
     RegistryClient {
+    private companion object {
+        const val PAGE_SIZE = 100
+    }
+
     override fun supports(registryType: RegistryType): Boolean = registryType == RegistryType.GITHUB_RELEASES
 
     override fun fetchVersions(identifier: String): RegistryVersionResult {
@@ -28,12 +32,23 @@ class GithubReleasesRegistryClient(
                 ?.takeIf { it.isNotBlank() }
                 ?.let { mapOf("Authorization" to "Bearer $it") }
                 ?: emptyMap()
-        val versions =
-            getJson(
-                url = "https://api.github.com/repos/$encodedOwner/$encodedRepo/releases?per_page=20",
-                headers = headers,
-            ).filter { !it.path("prerelease").asBoolean(false) }
-                .mapNotNull { it.path("tag_name").takeIf { version -> version.isTextual }?.asText() }
+        val versions = mutableListOf<String>()
+        var page = 1
+
+        do {
+            val releases =
+                getJson(
+                    url = "https://api.github.com/repos/$encodedOwner/$encodedRepo/releases?per_page=$PAGE_SIZE&page=$page",
+                    headers = headers,
+                )
+            val pageVersions =
+                releases
+                    .filter { !it.path("prerelease").asBoolean(false) && !it.path("draft").asBoolean(false) }
+                    .mapNotNull { it.path("tag_name").takeIf { version -> version.isTextual }?.asText() }
+
+            versions.addAll(pageVersions)
+            page += 1
+        } while (releases.size() == PAGE_SIZE)
 
         return RegistryVersionResult(
             latestVersion = RegistryVersionSelector.latestStable(versions),
@@ -42,7 +57,7 @@ class GithubReleasesRegistryClient(
     }
 
     private fun parseIdentifier(identifier: String): Pair<String, String> {
-        val parts = identifier.split("/", limit = 2)
+        val parts = identifier.split("/")
         if (parts.size != 2 || parts.any { it.isBlank() }) {
             invalidIdentifier("GitHub Releases identifier must be formatted as owner/repo")
         }
