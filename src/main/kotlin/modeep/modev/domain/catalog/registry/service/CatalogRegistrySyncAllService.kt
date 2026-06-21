@@ -20,25 +20,27 @@ class CatalogRegistrySyncAllService(
 
         techStackRepository.findByRegistryAutoSyncTrueAndRegistryTypeIsNotNullAndRegistryIdentifierIsNotNull()
             .forEach { techStack ->
-                runCatching {
+                try {
                     catalogRegistrySyncService.sync(CatalogRegistryTargetType.TECH_STACK, techStack.publicId)
-                }.onSuccess {
                     syncedCount++
-                }.onFailure {
+                } catch (e: Exception) {
                     failedCount++
-                    catalogRegistrySyncFailureService.recordTechStackFailure(techStack.publicId, it)
+                    runCatching {
+                        catalogRegistrySyncFailureService.recordTechStackFailure(techStack.publicId, e)
+                    }
                 }
             }
 
         dependencyRepository.findByRegistryAutoSyncTrueAndRegistryTypeIsNotNullAndRegistryIdentifierIsNotNull()
             .forEach { dependency ->
-                runCatching {
+                try {
                     catalogRegistrySyncService.sync(CatalogRegistryTargetType.DEPENDENCY, dependency.publicId)
-                }.onSuccess {
                     syncedCount++
-                }.onFailure {
+                } catch (e: Exception) {
                     failedCount++
-                    catalogRegistrySyncFailureService.recordDependencyFailure(dependency.publicId, it)
+                    runCatching {
+                        catalogRegistrySyncFailureService.recordDependencyFailure(dependency.publicId, e)
+                    }
                 }
             }
 
