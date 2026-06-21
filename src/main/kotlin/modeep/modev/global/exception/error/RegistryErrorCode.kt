@@ -16,4 +16,7 @@ enum class RegistryErrorCode(
     EMPTY_RESPONSE(HttpStatus.BAD_GATEWAY, "REGI-006", "레지스트리 응답이 비어 있습니다."),
     REQUEST_FAILED(HttpStatus.BAD_GATEWAY, "REGI-007", "레지스트리 API 호출에 실패했습니다."),
     RESPONSE_PARSE_FAILED(HttpStatus.BAD_GATEWAY, "REGI-008", "레지스트리 응답 파싱에 실패했습니다."),
+
+    FIELD_NOT_FOUND_IN_TECH_STACK(HttpStatus.NOT_FOUND, "REGI-009", "기술 스택 초기 데이터(Seed)에서 해당 필드를 찾을 수 없습니다"),
+    TECH_STACK_NOT_FOUND_IN_DEPENDENCY(HttpStatus.NOT_FOUND, "REGI-010", "의존성 초기 데이터(Seed)에서 해당 기술 스택을 찾을 수 없습니다"),
 }

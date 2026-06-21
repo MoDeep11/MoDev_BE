@@ -11,6 +11,8 @@ import modeep.modev.domain.catalog.repository.DependencyRepository
 import modeep.modev.domain.catalog.repository.FieldRepository
 import modeep.modev.domain.catalog.repository.FieldStackMappingRepository
 import modeep.modev.domain.catalog.repository.TechStackRepository
+import modeep.modev.global.exception.BusinessException
+import modeep.modev.global.exception.error.RegistryErrorCode
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Profile
@@ -56,13 +58,16 @@ class CatalogRegistrySeedRunner(
             techStackSeeds
                 .filterNot { it.publicId in existingPublicIds }
                 .map {
+                    val field =
+                        fieldsByPublicId[it.fieldPublicId]
+                            ?: throw BusinessException(RegistryErrorCode.FIELD_NOT_FOUND_IN_TECH_STACK)
                     TechStack(
                         publicId = it.publicId,
                         name = it.name,
                         description = it.description,
                         version = it.version,
                         category = it.category,
-                        field = fieldsByPublicId.getValue(it.fieldPublicId),
+                        field = field,
                         iconUrl = it.iconUrl,
                         registryType = it.registryType,
                         registryIdentifier = it.registryIdentifier,
@@ -102,9 +107,12 @@ class CatalogRegistrySeedRunner(
             dependencySeeds
                 .filterNot { it.publicId in existingPublicIds }
                 .map {
+                    val techStack =
+                        techStacksByPublicId[it.techStackPublicId]
+                            ?: throw BusinessException(RegistryErrorCode.TECH_STACK_NOT_FOUND_IN_DEPENDENCY)
                     Dependency(
                         publicId = it.publicId,
-                        techStack = techStacksByPublicId.getValue(it.techStackPublicId),
+                        techStack = techStack,
                         name = it.name,
                         description = it.description,
                         version = it.version,
