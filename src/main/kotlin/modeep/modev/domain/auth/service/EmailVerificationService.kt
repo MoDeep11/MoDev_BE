@@ -3,8 +3,8 @@ package modeep.modev.domain.auth.service
 import modeep.modev.domain.auth.controller.dto.request.EmailVerificationSendRequest
 import modeep.modev.domain.auth.controller.dto.request.VerifyCode
 import modeep.modev.domain.auth.controller.dto.response.EmailVerificationResponse
-import modeep.modev.domain.auth.entity.UserStatus
-import modeep.modev.domain.auth.repository.UserRepository
+import modeep.modev.domain.user.entity.UserStatus
+import modeep.modev.domain.user.repository.UserRepository
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.AuthErrorCode
 import modeep.modev.global.mail.EmailTemplateRenderer
