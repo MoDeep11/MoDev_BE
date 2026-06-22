@@ -1,6 +1,6 @@
 package modeep.modev.domain.auth.controller.dto.response
 
-import modeep.modev.domain.auth.entity.User
+import modeep.modev.domain.user.entity.User
 
 data class SignupResponse(
     val userId: Long,

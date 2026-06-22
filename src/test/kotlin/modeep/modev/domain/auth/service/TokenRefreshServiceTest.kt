@@ -1,8 +1,8 @@
 package modeep.modev.domain.auth.service
 
-import modeep.modev.domain.auth.entity.User
 import modeep.modev.domain.auth.entity.UserStatus
 import modeep.modev.domain.auth.repository.UserRepository
+import modeep.modev.domain.user.entity.User
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.AuthErrorCode
 import modeep.modev.global.security.jwt.JwtTokenProvider

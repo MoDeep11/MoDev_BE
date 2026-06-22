@@ -1,4 +1,4 @@
-package modeep.modev.domain.auth.entity
+package modeep.modev.domain.user.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import modeep.modev.domain.auth.entity.UserStatus
 import modeep.modev.global.common.BaseEntity
 import java.time.Instant
 
@@ -23,7 +24,7 @@ class User(
     val passwordHash: String,
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    var status: UserStatus = UserStatus.ACTIVE,
+    var status: UserStatus = UserStatus.UNVERIFIED,
     @Column(nullable = true)
     val deletedAt: Instant? = null,
 ) : BaseEntity() {

@@ -1,6 +1,6 @@
 package modeep.modev.domain.auth.repository
 
-import modeep.modev.domain.auth.entity.User
+import modeep.modev.domain.user.entity.User
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface UserRepository : JpaRepository<User, Long> {

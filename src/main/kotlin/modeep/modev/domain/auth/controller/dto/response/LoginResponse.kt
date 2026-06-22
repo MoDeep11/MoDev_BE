@@ -1,7 +1,7 @@
 package modeep.modev.domain.auth.controller.dto.response
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import modeep.modev.domain.auth.entity.User
+import modeep.modev.domain.user.entity.User
 
 data class LoginResponse(
     val accessToken: String,

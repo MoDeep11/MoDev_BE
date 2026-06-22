@@ -5,9 +5,9 @@ import jakarta.mail.Session
 import jakarta.mail.internet.MimeMessage
 import modeep.modev.domain.auth.controller.dto.request.EmailVerificationSendRequest
 import modeep.modev.domain.auth.controller.dto.request.VerifyCode
-import modeep.modev.domain.auth.entity.User
 import modeep.modev.domain.auth.entity.UserStatus
 import modeep.modev.domain.auth.repository.UserRepository
+import modeep.modev.domain.user.entity.User
 import modeep.modev.global.config.properties.MailProperties
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.AuthErrorCode

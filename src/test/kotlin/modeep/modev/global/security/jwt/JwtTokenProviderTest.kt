@@ -2,8 +2,8 @@ package modeep.modev.global.security.jwt
 
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
-import modeep.modev.domain.auth.entity.User
 import modeep.modev.domain.auth.entity.UserStatus
+import modeep.modev.domain.user.entity.User
 import java.nio.charset.StandardCharsets
 import kotlin.test.Test
 import kotlin.test.assertEquals
