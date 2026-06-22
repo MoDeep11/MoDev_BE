@@ -46,7 +46,7 @@ class AuthController(
 
     @PostMapping("/login")
     fun login(
-        @RequestBody request: LoginRequest,
+        @Valid @RequestBody request: LoginRequest,
         response: HttpServletResponse,
     ): ApiResponse {
         val loginResponse = loginService.execute(request)
