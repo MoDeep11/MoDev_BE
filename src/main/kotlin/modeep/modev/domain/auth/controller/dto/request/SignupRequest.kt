@@ -4,9 +4,11 @@ import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 
 data class SignupRequest(
-    @Email
+    @field:NotBlank
+    @field:Email
     val email: String,
-    @NotBlank
+    @field:NotBlank
     val password: String,
+    @field:NotBlank
     val passwordConfirm: String,
 )

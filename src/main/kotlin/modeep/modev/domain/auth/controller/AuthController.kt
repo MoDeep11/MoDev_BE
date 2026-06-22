@@ -7,13 +7,13 @@ import modeep.modev.domain.auth.controller.dto.request.LoginRequest
 import modeep.modev.domain.auth.controller.dto.request.SignupRequest
 import modeep.modev.domain.auth.controller.dto.request.VerifyCode
 import modeep.modev.domain.auth.controller.dto.response.LoginResponse
+import modeep.modev.domain.auth.service.EmailVerificationService
 import modeep.modev.domain.auth.service.LoginService
 import modeep.modev.domain.auth.service.LogoutService
 import modeep.modev.domain.auth.service.SignupService
 import modeep.modev.domain.auth.service.TokenRefreshService
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.AuthErrorCode
-import modeep.modev.global.mail.MailService
 import modeep.modev.global.response.ApiResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -32,12 +32,12 @@ class AuthController(
     private val loginService: LoginService,
     private val logoutService: LogoutService,
     private val tokenRefreshService: TokenRefreshService,
-    private val mailService: MailService,
+    private val emailVerificationService: EmailVerificationService,
 ) {
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
     fun signup(
-        @RequestBody request: SignupRequest,
+        @Valid @RequestBody request: SignupRequest,
     ): ApiResponse =
         ApiResponse(
             success = true,
@@ -78,7 +78,7 @@ class AuthController(
     fun sendVerificationCode(
         @Valid @RequestBody request: EmailVerificationSendRequest,
     ): ApiResponse {
-        mailService.sendVerificationCode(request)
+        emailVerificationService.sendVerificationCode(request)
         return ApiResponse(
             success = true,
             data = null,
@@ -91,7 +91,7 @@ class AuthController(
     ): ApiResponse {
         return ApiResponse(
             success = true,
-            data = mailService.checkAuthCode(request),
+            data = emailVerificationService.checkAuthCode(request),
             error = null,
         )
     }
