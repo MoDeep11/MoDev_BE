@@ -5,7 +5,7 @@ import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
-import modeep.modev.domain.auth.entity.User
+import modeep.modev.domain.user.entity.User
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.AuthErrorCode
 import org.springframework.beans.factory.annotation.Value
@@ -55,7 +55,9 @@ class JwtTokenProvider(
 
         return JwtPrincipal(
             email = claims.subject,
-            status = claims["status"] as String,
+            status =
+                (claims["status"] as? String)
+                    ?: throw JwtException("missing or invalid status claim"),
         )
     }
 
