@@ -45,9 +45,10 @@ class EmailVerificationService(
 
         val code = generateVerificationCode()
         val codeKey = "$CODE_KEY_PREFIX$email"
-        redisTemplate.opsForValue().set(codeKey, code, VERIFY_CODE_TTL)
 
         try {
+            redisTemplate.opsForValue().set(codeKey, code, VERIFY_CODE_TTL)
+
             val body =
                 emailTemplateRenderer.render(
                     templatePath = VERIFY_EMAIL_TEMPLATE_PATH,
@@ -65,7 +66,7 @@ class EmailVerificationService(
                     isHtml = true,
                 ),
             )
-        } catch (exception: RuntimeException) {
+        } catch (exception: Exception) {
             redisTemplate.delete(codeKey)
             redisTemplate.delete(rateLimitKey)
             throw exception
