@@ -53,21 +53,21 @@ class PostProjectService(
         projectFieldRepository.saveAll(
             fields.map {
                 ProjectField(
-                    id = ProjectFieldId(projectId = projectId, fieldId = it.id),
+                    id = ProjectFieldId(projectId = projectId, fieldId = requireNotNull(it.id)),
                 )
             },
         )
         projectTechStackRepository.saveAll(
             stacks.map {
                 ProjectTechStack(
-                    id = ProjectTechStackId(projectId = projectId, techStackId = it.id),
+                    id = ProjectTechStackId(projectId = projectId, techStackId = requireNotNull(it.id)),
                 )
             },
         )
         projectDependencyRepository.saveAll(
             dependencies.map {
                 ProjectDependency(
-                    id = ProjectDependencyId(projectId = projectId, dependencyId = it.id),
+                    id = ProjectDependencyId(projectId = projectId, dependencyId = requireNotNull(it.id)),
                 )
             },
         )

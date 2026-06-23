@@ -6,7 +6,11 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
 interface TechStackRepository : JpaRepository<TechStack, Long> {
+    fun findByPublicId(publicId: String): TechStack?
+
     fun findByPublicIdIn(publicIds: Collection<String>): List<TechStack>
+
+    fun findByRegistryAutoSyncTrueAndRegistryTypeIsNotNullAndRegistryIdentifierIsNotNull(): List<TechStack>
 
     @Query(
         """

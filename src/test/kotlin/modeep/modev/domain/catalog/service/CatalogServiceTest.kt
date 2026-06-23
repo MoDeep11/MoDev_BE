@@ -4,7 +4,6 @@ import modeep.modev.domain.catalog.entity.Dependency
 import modeep.modev.domain.catalog.entity.Field
 import modeep.modev.domain.catalog.entity.TechStack
 import modeep.modev.domain.catalog.entity.vo.Category
-import modeep.modev.domain.catalog.entity.vo.Ecosystem
 import modeep.modev.domain.catalog.repository.DependencyRepository
 import modeep.modev.domain.catalog.repository.FieldRepository
 import modeep.modev.domain.catalog.repository.TechStackRepository
@@ -133,7 +132,6 @@ class CatalogServiceTest {
             name = "Spring Boot",
             description = "backend framework",
             version = "3.2.1",
-            ecosystem = Ecosystem.JAVA,
             category = Category.FRAMEWORK,
             field =
                 Field(
