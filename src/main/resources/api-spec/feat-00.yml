@@ -294,8 +294,8 @@ paths:
         - Auth
       summary: 이메일 인증 확인
       description: |
-        인증 이메일의 링크에 포함된 토큰으로 이메일 인증을 완료한다.
-        인증 토큰은 24시간 유효하며 1회 사용 후 즉시 무효화된다.
+        이메일로 전송된 6자리 코드로 이메일 인증을 완료한다.
+        인증 코드는 5분간 유효하며 1회 사용 후 즉시 무효화된다.
         인증 완료 시 계정 상태가 UNVERIFIED → ACTIVE로 변경된다.
       operationId: verifyEmail
       security: []
@@ -306,7 +306,8 @@ paths:
             schema:
               $ref: '#/components/schemas/EmailVerifyRequest'
             example:
-              token: uuid-verify-token
+              email: user@example.com
+              code: "012345"
       responses:
         '200':
           description: 이메일 인증 성공
@@ -326,7 +327,7 @@ paths:
                   status: ACTIVE
                 error: null
         '400':
-          description: 유효하지 않은 인증 토큰
+          description: 유효하지 않은 인증 코드
           content:
             application/json:
               schema:
@@ -335,8 +336,8 @@ paths:
                 success: false
                 data: null
                 error:
-                  code: VERIFY_TOKEN_INVALID
-                  message: 유효하지 않은 인증 링크입니다.
+                  code: VERIFY_CODE_INVALID
+                  message: 유효하지 않은 인증 코드입니다.
         '409':
           description: 이미 인증된 계정
           content:
@@ -350,7 +351,7 @@ paths:
                   code: ALREADY_VERIFIED
                   message: 이미 인증이 완료된 계정입니다.
         '410':
-          description: 인증 링크 만료
+          description: 인증 코드 만료
           content:
             application/json:
               schema:
@@ -359,30 +360,30 @@ paths:
                 success: false
                 data: null
                 error:
-                  code: VERIFY_TOKEN_EXPIRED
-                  message: 인증 링크가 만료되었습니다. 인증 이메일을 재발송해주세요.
+                  code: VERIFY_CODE_EXPIRED
+                  message: 인증 코드가 만료되었습니다. 인증 코드를 다시 요청해주세요.
 
-  /auth/email/resend:
+  /auth/email/send:
     post:
       tags:
         - Auth
-      summary: 인증 이메일 재발송
+      summary: 이메일 인증 코드 발송
       description: |
-        인증 이메일을 재발송한다.
-        재발송은 1분에 1회로 제한된다 (Rate Limit).
-      operationId: resendVerificationEmail
+        이메일 인증 코드를 발송한다.
+        발송은 1분에 1회로 제한된다 (Rate Limit).
+      operationId: sendVerificationCode
       security: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmailResendRequest'
+              $ref: '#/components/schemas/EmailVerificationSendRequest'
             example:
               email: user@example.com
       responses:
         '200':
-          description: 재발송 성공
+          description: 발송 성공
           content:
             application/json:
               schema:
@@ -530,14 +531,20 @@ components:
     EmailVerifyRequest:
       type: object
       required:
-        - token
+        - email
+        - code
       properties:
-        token:
+        email:
           type: string
-          description: 인증 이메일에 포함된 일회성 토큰
-          example: uuid-verify-token
+          format: email
+          example: user@example.com
+        code:
+          type: string
+          pattern: '^\d{6}$'
+          description: 이메일로 전송된 6자리 인증 코드
+          example: "012345"
 
-    EmailResendRequest:
+    EmailVerificationSendRequest:
       type: object
       required:
         - email

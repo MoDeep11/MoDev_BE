@@ -1,0 +1,62 @@
+package modeep.modev.global.security.jwt
+
+import io.jsonwebtoken.JwtException
+import jakarta.servlet.FilterChain
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.stereotype.Component
+import org.springframework.web.filter.OncePerRequestFilter
+
+@Component
+class JwtAuthenticationFilter(
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
+) : OncePerRequestFilter() {
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        filterChain: FilterChain,
+    ) {
+        val token = resolveToken(request)
+        if (token == null) {
+            filterChain.doFilter(request, response)
+            return
+        }
+
+        try {
+            val principal = jwtTokenProvider.parseAccessToken(token)
+            val authentication =
+                UsernamePasswordAuthenticationToken(
+                    principal,
+                    null,
+                    listOf(SimpleGrantedAuthority("ROLE_USER")),
+                )
+
+            SecurityContextHolder.getContext().authentication = authentication
+            filterChain.doFilter(request, response)
+        } catch (exception: JwtException) {
+            SecurityContextHolder.clearContext()
+            jwtAuthenticationEntryPoint.commence(request, response, exception)
+        } catch (exception: IllegalArgumentException) {
+            SecurityContextHolder.clearContext()
+            jwtAuthenticationEntryPoint.commence(request, response, exception)
+        }
+    }
+
+    private fun resolveToken(request: HttpServletRequest): String? {
+        val authorization = request.getHeader(AUTHORIZATION_HEADER) ?: return null
+        if (!authorization.startsWith(BEARER_PREFIX, ignoreCase = true)) {
+            return null
+        }
+
+        return authorization.substring(BEARER_PREFIX.length).trim().takeIf { it.isNotBlank() }
+    }
+
+    private companion object {
+        const val AUTHORIZATION_HEADER = "Authorization"
+        const val BEARER_PREFIX = "Bearer "
+    }
+}
