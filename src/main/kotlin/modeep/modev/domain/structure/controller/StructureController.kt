@@ -8,8 +8,11 @@ import modeep.modev.domain.structure.service.GetStructureFileService
 import modeep.modev.domain.structure.service.GetStructureStatusService
 import modeep.modev.domain.structure.service.StreamStructureService
 import modeep.modev.global.response.ApiResponse
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -26,6 +29,7 @@ class StructureController(
     private val getStructureFileService: GetStructureFileService,
     private val downloadStructureService: DownloadStructureService,
 ) : StructureControllerDocs {
+    @PostMapping
     override fun generate(
         @RequestBody request: GenerateStructureRequest,
     ): ResponseEntity<ApiResponse> =
@@ -38,37 +42,50 @@ class StructureController(
                 ),
             )
 
+    @GetMapping("/{projectId}")
     override fun getStatus(
         @PathVariable projectId: UUID,
-    ): ApiResponse =
-        ApiResponse(
-            success = true,
-            data = getStructureStatusService.execute(projectId),
+    ): ResponseEntity<ApiResponse> =
+        ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                data = getStructureStatusService.execute(projectId),
+            ),
         )
 
+    @GetMapping(
+        "/{projectId}/stream",
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
+    )
     override fun stream(
         @PathVariable projectId: UUID,
         response: HttpServletResponse,
-    ): SseEmitter {
+    ): ResponseEntity<SseEmitter> {
         response.setHeader("X-Accel-Buffering", "no")
 
-        return streamStructureService.connect(projectId.toString())
+        return ResponseEntity.ok(streamStructureService.connect(projectId.toString()))
     }
 
+    @GetMapping("/{projectId}/files")
     override fun getFile(
         @PathVariable projectId: UUID,
         @RequestParam(name = "filePath") path: String,
-    ): ApiResponse =
-        ApiResponse(
-            success = true,
-            data = getStructureFileService.execute(projectId, path),
+    ): ResponseEntity<ApiResponse> =
+        ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                data = getStructureFileService.execute(projectId, path),
+            ),
         )
 
+    @PostMapping("/{projectId}/download")
     override fun issueDownloadUrl(
         @PathVariable projectId: UUID,
-    ): ApiResponse =
-        ApiResponse(
-            success = true,
-            data = downloadStructureService.issueDownloadUrl(projectId),
+    ): ResponseEntity<ApiResponse> =
+        ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                data = downloadStructureService.issueDownloadUrl(projectId),
+            ),
         )
 }
