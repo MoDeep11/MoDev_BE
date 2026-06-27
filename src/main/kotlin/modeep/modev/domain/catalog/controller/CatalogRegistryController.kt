@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RestController
 class CatalogRegistryController(
     private val catalogRegistrySyncService: CatalogRegistrySyncService,
     private val catalogRegistrySyncAllService: CatalogRegistrySyncAllService,
-) {
+) : CatalogRegistryControllerDocs {
     @GetMapping("/versions")
-    fun getVersions(
+    override fun getVersions(
         @RequestParam targetType: CatalogRegistryTargetType,
         @RequestParam publicId: String,
     ): ApiResponse =
@@ -27,7 +27,7 @@ class CatalogRegistryController(
         )
 
     @PostMapping("/sync")
-    fun sync(
+    override fun sync(
         @RequestParam targetType: CatalogRegistryTargetType,
         @RequestParam publicId: String,
     ): ApiResponse =
@@ -37,7 +37,7 @@ class CatalogRegistryController(
         )
 
     @PostMapping("/sync/all")
-    fun syncAll(): ApiResponse =
+    override fun syncAll(): ApiResponse =
         ApiResponse(
             success = true,
             data = catalogRegistrySyncAllService.syncAll(),
