@@ -2,6 +2,7 @@ package modeep.modev.domain.auth.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.headers.Header
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
@@ -72,6 +73,13 @@ interface AuthControllerDocs {
                         ],
                     ),
                 ],
+                headers = [
+                    Header(
+                        name = "Set-Cookie",
+                        description = "refreshToken HttpOnly 쿠키를 설정한다. Path=/auth; Secure; SameSite=Strict",
+                        schema = Schema(type = "string"),
+                    ),
+                ],
             ),
             SwaggerApiResponse(responseCode = "401", description = "이메일 또는 비밀번호 불일치"),
             SwaggerApiResponse(responseCode = "403", description = "이메일 미인증 계정 또는 계정 잠금"),
@@ -89,7 +97,17 @@ interface AuthControllerDocs {
     )
     @ApiResponses(
         value = [
-            SwaggerApiResponse(responseCode = "200", description = "토큰 재발급 성공"),
+            SwaggerApiResponse(
+                responseCode = "200",
+                description = "토큰 재발급 성공",
+                headers = [
+                    Header(
+                        name = "Set-Cookie",
+                        description = "새 refreshToken HttpOnly 쿠키를 설정한다. Path=/auth; Secure; SameSite=Strict",
+                        schema = Schema(type = "string"),
+                    ),
+                ],
+            ),
             SwaggerApiResponse(responseCode = "401", description = "리프레시 토큰 오류"),
         ],
     )
@@ -139,7 +157,17 @@ interface AuthControllerDocs {
     )
     @ApiResponses(
         value = [
-            SwaggerApiResponse(responseCode = "200", description = "로그아웃 성공"),
+            SwaggerApiResponse(
+                responseCode = "200",
+                description = "로그아웃 성공",
+                headers = [
+                    Header(
+                        name = "Set-Cookie",
+                        description = "refreshToken 쿠키를 만료한다. Path=/auth 및 Path=/auth/token/refresh; Max-Age=0",
+                        schema = Schema(type = "string"),
+                    ),
+                ],
+            ),
         ],
     )
     fun logout(
