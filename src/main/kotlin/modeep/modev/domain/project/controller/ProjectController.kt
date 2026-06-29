@@ -27,9 +27,9 @@ class ProjectController(
     private val patchProjectService: PatchProjectService,
     private val deleteProjectService: DeleteProjectService,
     private val postProjectService: PostProjectService,
-) {
+) : ProjectControllerDocs {
     @GetMapping
-    fun getProjects(
+    override fun getProjects(
         @RequestParam(name = "page", defaultValue = "1") page: Int,
         @RequestParam(name = "size", defaultValue = "20") size: Int,
         @RequestParam(name = "keyword", required = false) keyword: String?,
@@ -45,7 +45,7 @@ class ProjectController(
             )
 
     @PostMapping
-    fun saveProject(
+    override fun saveProject(
         @Valid @RequestBody request: SaveProjectRequest,
     ): ResponseEntity<ApiResponse> =
         ResponseEntity
@@ -59,7 +59,7 @@ class ProjectController(
             )
 
     @GetMapping("/{projectId}")
-    fun getProjectDetail(
+    override fun getProjectDetail(
         @PathVariable projectId: String,
     ): ResponseEntity<ApiResponse> =
         ResponseEntity
@@ -73,7 +73,7 @@ class ProjectController(
             )
 
     @PatchMapping("/{projectId}/metadata")
-    fun updateProjectMetadata(
+    override fun updateProjectMetadata(
         @PathVariable projectId: String,
         @Valid @RequestBody request: UpdateProjectMetadataRequest,
     ): ResponseEntity<ApiResponse> =
@@ -88,7 +88,7 @@ class ProjectController(
             )
 
     @DeleteMapping("/{projectId}")
-    fun deleteProject(
+    override fun deleteProject(
         @PathVariable projectId: String,
     ): ResponseEntity<ApiResponse> =
         ResponseEntity

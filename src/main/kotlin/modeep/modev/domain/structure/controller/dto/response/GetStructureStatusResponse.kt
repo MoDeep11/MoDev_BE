@@ -5,3 +5,13 @@ data class GetStructureStatusResponse(
     val status: String,
     val result: StructureResultResponse?,
 )
+
+data class StructureResultResponse(
+    val fileTree: List<FileTreeNodeResponse>,
+)
+
+data class FileTreeNodeResponse(
+    val name: String,
+    val type: String,
+    val children: List<FileTreeNodeResponse> = emptyList(),
+)

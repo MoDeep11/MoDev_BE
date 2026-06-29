@@ -33,10 +33,10 @@ class AuthController(
     private val logoutService: LogoutService,
     private val tokenRefreshService: TokenRefreshService,
     private val emailVerificationService: EmailVerificationService,
-) {
+) : AuthControllerDocs {
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
-    fun signup(
+    override fun signup(
         @Valid @RequestBody request: SignupRequest,
     ): ApiResponse =
         ApiResponse(
@@ -45,7 +45,7 @@ class AuthController(
         )
 
     @PostMapping("/login")
-    fun login(
+    override fun login(
         @Valid @RequestBody request: LoginRequest,
         response: HttpServletResponse,
     ): ApiResponse {
@@ -58,7 +58,7 @@ class AuthController(
     }
 
     @PostMapping("/token/refresh")
-    fun refreshToken(
+    override fun refreshToken(
         @CookieValue(name = REFRESH_TOKEN_COOKIE, defaultValue = "") refreshToken: String,
         response: HttpServletResponse,
     ): ApiResponse {
@@ -75,7 +75,7 @@ class AuthController(
     }
 
     @PostMapping("/email/send")
-    fun sendVerificationCode(
+    override fun sendVerificationCode(
         @Valid @RequestBody request: EmailVerificationSendRequest,
     ): ApiResponse {
         emailVerificationService.sendVerificationCode(request)
@@ -86,7 +86,7 @@ class AuthController(
     }
 
     @PostMapping("/email/verify")
-    fun verifyAuthCode(
+    override fun verifyAuthCode(
         @Valid @RequestBody request: VerifyCode,
     ): ApiResponse {
         return ApiResponse(
@@ -97,7 +97,7 @@ class AuthController(
     }
 
     @PostMapping("/logout")
-    fun logout(
+    override fun logout(
         @CookieValue(name = REFRESH_TOKEN_COOKIE, defaultValue = "") refreshToken: String,
         response: HttpServletResponse,
     ): ApiResponse {

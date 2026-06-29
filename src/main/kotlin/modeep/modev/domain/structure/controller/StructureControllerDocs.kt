@@ -12,9 +12,7 @@ import modeep.modev.domain.structure.controller.dto.request.GenerateStructureReq
 import modeep.modev.global.response.ApiResponse
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
@@ -92,7 +90,6 @@ interface StructureControllerDocs {
             SwaggerApiResponse(responseCode = "500", description = "서버 내부 오류"),
         ],
     )
-    @PostMapping
     fun generate(
         @RequestBody request: GenerateStructureRequest,
     ): ResponseEntity<ApiResponse>
@@ -200,11 +197,10 @@ interface StructureControllerDocs {
             SwaggerApiResponse(responseCode = "404", description = "프로젝트 ID 없음 또는 만료"),
         ],
     )
-    @GetMapping("/{projectId}")
     fun getStatus(
         @Parameter(description = "프로젝트 생성 ID", example = "550e8400-e29b-41d4-a716-446655440000")
         @PathVariable projectId: UUID,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "SSE 스트리밍 연결",
@@ -272,15 +268,11 @@ interface StructureControllerDocs {
             ),
         ],
     )
-    @GetMapping(
-        "/{projectId}/stream",
-        produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
-    )
     fun stream(
         @Parameter(description = "프로젝트 생성 ID", example = "550e8400-e29b-41d4-a716-446655440000")
         @PathVariable projectId: UUID,
         @Parameter(hidden = true) response: HttpServletResponse,
-    ): SseEmitter
+    ): ResponseEntity<SseEmitter>
 
     @Operation(
         summary = "생성된 특정 파일 내용 조회",
@@ -324,13 +316,12 @@ interface StructureControllerDocs {
             SwaggerApiResponse(responseCode = "404", description = "프로젝트 ID 또는 파일 경로 없음"),
         ],
     )
-    @GetMapping("/{projectId}/files")
     fun getFile(
         @Parameter(description = "프로젝트 생성 ID", example = "550e8400-e29b-41d4-a716-446655440000")
         @PathVariable projectId: UUID,
         @Parameter(description = "파일 경로 (프로젝트 루트 기준 상대 경로)", example = "backend/build.gradle")
         @RequestParam(name = "filePath") path: String,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "생성된 프로젝트 zip 다운로드 URL 발급",
@@ -378,9 +369,8 @@ interface StructureControllerDocs {
             SwaggerApiResponse(responseCode = "500", description = "서버 내부 오류"),
         ],
     )
-    @PostMapping("/{projectId}/download")
     fun issueDownloadUrl(
         @Parameter(description = "프로젝트 생성 ID", example = "550e8400-e29b-41d4-a716-446655440000")
         @PathVariable projectId: UUID,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 }
