@@ -21,7 +21,6 @@ import modeep.modev.global.exception.error.GlobalErrorCode
 import modeep.modev.global.exception.error.ProjectErrorCode
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.UUID
 
 @Service
 class PostProjectService(
@@ -35,7 +34,6 @@ class PostProjectService(
 ) {
     @Transactional
     fun saveProject(request: SaveProjectRequest): SaveProjectResponse {
-        val projectId = generateProjectId()
         val fields = fieldRepository.findByPublicIdIn(request.fieldIds.distinct())
         val stacks = techStackRepository.findByPublicIdIn(request.stackIds.distinct())
         val dependencies = dependencyRepository.findByPublicIdIn(request.dependencyIds.distinct())
@@ -45,11 +43,12 @@ class PostProjectService(
         val project =
             projectRepository.save(
                 Project(
-                    id = projectId,
                     projectName = request.projectName,
                     description = request.description.normalizeDescription(),
                 ),
             )
+        val projectId = requireNotNull(project.id)
+
         projectFieldRepository.saveAll(
             fields.map {
                 ProjectField(
@@ -73,13 +72,11 @@ class PostProjectService(
         )
 
         return SaveProjectResponse(
-            projectId = project.id,
+            projectId = projectId,
             projectName = project.projectName,
             createdAt = project.createdAt,
         )
     }
-
-    private fun generateProjectId(): UUID = UUID.randomUUID()
 
     private fun String?.normalizeDescription(): String? = this?.trim()?.takeIf { it.isNotEmpty() }
 

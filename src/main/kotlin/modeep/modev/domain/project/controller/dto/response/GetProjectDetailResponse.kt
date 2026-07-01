@@ -1,5 +1,6 @@
 package modeep.modev.domain.project.controller.dto.response
 
+import modeep.modev.domain.structure.controller.dto.response.GetStructureStatusResponse
 import java.time.Instant
 import java.util.UUID
 

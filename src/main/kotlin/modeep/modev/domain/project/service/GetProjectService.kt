@@ -38,7 +38,7 @@ class GetProjectService(
         val dependencies = dependencyRepository.findByProjectId(projectId)
 
         return GetProjectDetailResponse(
-            projectId = project.id,
+            projectId = projectId,
             projectName = project.projectName,
             description = project.description,
             fields = fields.map { it.name },
@@ -82,7 +82,7 @@ class GetProjectService(
             } else {
                 projectRepository.findByProjectNameContainingIgnoreCaseAndDeletedAtIsNull(normalizedKeyword, pageable)
             }
-        val projectIds = projects.content.map { it.id }
+        val projectIds = projects.content.map { requireNotNull(it.id) }
         val stacksByProjectId =
             if (projectIds.isEmpty()) {
                 emptyMap()
@@ -95,11 +95,12 @@ class GetProjectService(
         return GetProjectsResponse(
             projects =
                 projects.content.map { project ->
+                    val id = requireNotNull(project.id)
                     ProjectSummaryResponse(
-                        projectId = project.id,
+                        projectId = id,
                         projectName = project.projectName,
                         description = project.description,
-                        stacks = stacksByProjectId[project.id].orEmpty(),
+                        stacks = stacksByProjectId[id].orEmpty(),
                         createdAt = project.createdAt,
                         updatedAt = project.updatedAt,
                         status = project.status.name,

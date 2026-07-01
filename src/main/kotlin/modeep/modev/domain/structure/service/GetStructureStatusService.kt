@@ -36,7 +36,7 @@ class GetStructureStatusService(
             }
 
         return GetStructureStatusResponse(
-            projectId = project.id,
+            projectId = projectId,
             status = status.name,
             result = result,
         )

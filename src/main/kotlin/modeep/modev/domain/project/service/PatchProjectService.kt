@@ -29,7 +29,7 @@ class PatchProjectService(
         )
 
         return UpdateProjectMetadataResponse(
-            projectId = project.id,
+            projectId = projectId,
             projectName = project.projectName,
             description = project.description,
             updatedAt = project.updatedAt,

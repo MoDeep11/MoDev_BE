@@ -28,7 +28,7 @@ class DeleteProjectService(
         )
 
         return DeleteProjectResponse(
-            projectId = project.id,
+            projectId = projectId,
             deletedAt = deletedAt,
             hardDeleteScheduledAt = hardDeleteScheduledAt,
         )
