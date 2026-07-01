@@ -10,12 +10,14 @@ import modeep.modev.domain.project.controller.dto.response.ProjectDependencyResp
 import modeep.modev.domain.project.controller.dto.response.ProjectStackResponse
 import modeep.modev.domain.project.controller.dto.response.ProjectSummaryResponse
 import modeep.modev.domain.project.repository.ProjectRepository
+import modeep.modev.domain.structure.service.GetStructureStatusService
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.ProjectErrorCode
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class GetProjectService(
@@ -23,9 +25,10 @@ class GetProjectService(
     private val fieldRepository: FieldRepository,
     private val dependencyRepository: DependencyRepository,
     private val techStackRepository: TechStackRepository,
+    private val getStructureStatusService: GetStructureStatusService,
 ) {
     @Transactional(readOnly = true)
-    fun getProjectDetail(projectId: String): GetProjectDetailResponse {
+    fun getProjectDetail(projectId: UUID): GetProjectDetailResponse {
         val project =
             projectRepository
                 .findByIdAndDeletedAtIsNull(projectId)
@@ -56,7 +59,7 @@ class GetProjectService(
                         stackId = it.techStack.publicId,
                     )
                 },
-            fileTree = project.structure ?: "[]",
+            fileTree = getStructureStatusService.execute(projectId),
             createdAt = project.createdAt,
             updatedAt = project.updatedAt,
         )

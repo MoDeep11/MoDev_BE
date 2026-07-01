@@ -10,7 +10,7 @@ data class GetProjectDetailResponse(
     val fields: List<String>,
     val stacks: List<ProjectStackResponse>,
     val dependencies: List<ProjectDependencyResponse>,
-    val fileTree: String,
+    val fileTree: GetStructureStatusResponse,
     val createdAt: Instant,
     val updatedAt: Instant,
 )
