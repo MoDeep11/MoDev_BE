@@ -11,4 +11,6 @@ interface StructureFileRepository : JpaRepository<StructureFile, Long> {
     ): StructureFile?
 
     fun findAllByProjectIdOrderByPathAsc(projectId: UUID): List<StructureFile>
+
+    fun deleteAllByProjectId(projectId: UUID)
 }
