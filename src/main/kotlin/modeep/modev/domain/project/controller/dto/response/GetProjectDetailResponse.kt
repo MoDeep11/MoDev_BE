@@ -1,9 +1,10 @@
 package modeep.modev.domain.project.controller.dto.response
 
 import java.time.Instant
+import java.util.UUID
 
 data class GetProjectDetailResponse(
-    val projectId: String,
+    val projectId: UUID,
     val projectName: String,
     val description: String?,
     val fields: List<String>,

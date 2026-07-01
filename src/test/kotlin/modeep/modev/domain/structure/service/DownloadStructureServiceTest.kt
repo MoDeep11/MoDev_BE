@@ -51,7 +51,7 @@ class DownloadStructureServiceTest {
         val projectId = UUID.randomUUID()
         val inputCaptor = ArgumentCaptor.forClass(InputStream::class.java)
         val metadataCaptor = ArgumentCaptor.forClass(ObjectMetadata::class.java)
-        `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId.toString()))
+        `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId))
             .thenReturn(project(projectId, ProjectStatus.COMPLETED))
         `when`(structureFileRepository.findAllByProjectIdOrderByPathAsc(projectId))
             .thenReturn(
@@ -101,7 +101,7 @@ class DownloadStructureServiceTest {
     @Test
     fun `throws project not found when no structure files exist`() {
         val projectId = UUID.randomUUID()
-        `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId.toString()))
+        `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId))
             .thenReturn(project(projectId, ProjectStatus.COMPLETED))
         `when`(structureFileRepository.findAllByProjectIdOrderByPathAsc(projectId))
             .thenReturn(emptyList())
@@ -122,7 +122,7 @@ class DownloadStructureServiceTest {
         status: ProjectStatus,
     ): Project =
         Project(
-            id = projectId.toString(),
+            id = projectId,
             projectName = "test",
             status = status,
         )

@@ -8,13 +8,14 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 @Service
 class DeleteProjectService(
     private val projectRepository: ProjectRepository,
 ) {
     @Transactional
-    fun deleteProject(projectId: String): DeleteProjectResponse {
+    fun deleteProject(projectId: UUID): DeleteProjectResponse {
         val project =
             projectRepository
                 .findByIdAndDeletedAtIsNull(projectId)

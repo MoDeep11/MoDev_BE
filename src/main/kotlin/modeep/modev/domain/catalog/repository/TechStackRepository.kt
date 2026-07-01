@@ -4,6 +4,7 @@ import modeep.modev.domain.catalog.entity.TechStack
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import java.util.UUID
 
 interface TechStackRepository : JpaRepository<TechStack, Long> {
     fun findByPublicId(publicId: String): TechStack?
@@ -21,7 +22,7 @@ interface TechStackRepository : JpaRepository<TechStack, Long> {
         """,
     )
     fun findByProjectId(
-        @Param("projectId") projectId: String,
+        @Param("projectId") projectId: UUID,
     ): List<TechStack>
 
     @Query(
@@ -34,7 +35,7 @@ interface TechStackRepository : JpaRepository<TechStack, Long> {
         """,
     )
     fun findByProjectIdIn(
-        @Param("projectIds") projectIds: Collection<String>,
+        @Param("projectIds") projectIds: Collection<UUID>,
     ): List<ProjectStackSummary>
 
     @Query(
@@ -66,6 +67,6 @@ interface TechStackRepository : JpaRepository<TechStack, Long> {
 }
 
 data class ProjectStackSummary(
-    val projectId: String,
+    val projectId: UUID,
     val name: String,
 )

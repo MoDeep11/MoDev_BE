@@ -51,7 +51,7 @@ class DownloadStructureService(
 
     fun findByProjectId(projectId: UUID): Project {
         val project =
-            projectRepository.findByIdAndDeletedAtIsNull(projectId.toString())
+            projectRepository.findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
         return if (project.status == ProjectStatus.COMPLETED) {
@@ -62,7 +62,7 @@ class DownloadStructureService(
     }
 
     private fun createZip(projectId: UUID): ByteArray {
-        projectRepository.findByIdAndDeletedAtIsNull(projectId.toString())
+        projectRepository.findByIdAndDeletedAtIsNull(projectId)
             ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
         val files = structureFileRepository.findAllByProjectIdOrderByPathAsc(projectId)

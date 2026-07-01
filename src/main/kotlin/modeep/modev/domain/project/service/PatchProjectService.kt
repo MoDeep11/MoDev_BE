@@ -7,6 +7,7 @@ import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.ProjectErrorCode
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
 class PatchProjectService(
@@ -14,7 +15,7 @@ class PatchProjectService(
 ) {
     @Transactional
     fun updateProjectMetadata(
-        projectId: String,
+        projectId: UUID,
         request: UpdateProjectMetadataRequest,
     ): UpdateProjectMetadataResponse {
         val project =
@@ -28,7 +29,7 @@ class PatchProjectService(
         )
 
         return UpdateProjectMetadataResponse(
-            id = project.id,
+            projectId = project.id,
             projectName = project.projectName,
             description = project.description,
             updatedAt = project.updatedAt,

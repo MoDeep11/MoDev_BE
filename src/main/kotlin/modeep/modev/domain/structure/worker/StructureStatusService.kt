@@ -78,7 +78,7 @@ class StructureStatusService(
     ) {
         val project =
             projectRepository
-                .findByIdAndDeletedAtIsNull(projectId.toString())
+                .findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
         project.apply(update)

@@ -79,7 +79,7 @@ class PostProjectService(
         )
     }
 
-    private fun generateProjectId(): String = UUID.randomUUID().toString()
+    private fun generateProjectId(): UUID = UUID.randomUUID()
 
     private fun String?.normalizeDescription(): String? = this?.trim()?.takeIf { it.isNotEmpty() }
 

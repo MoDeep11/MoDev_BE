@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
+import java.util.UUID
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
 
 @Tag(name = "Project", description = "프로젝트 관리 API")
@@ -94,7 +95,7 @@ interface ProjectControllerDocs {
     )
     fun getProjectDetail(
         @Parameter(description = "프로젝트 식별자", example = "550e8400-e29b-41d4-a716-446655440000")
-        @PathVariable projectId: String,
+        @PathVariable projectId: UUID,
     ): ResponseEntity<ApiResponse>
 
     @Operation(
@@ -111,7 +112,7 @@ interface ProjectControllerDocs {
     )
     fun updateProjectMetadata(
         @Parameter(description = "프로젝트 식별자", example = "550e8400-e29b-41d4-a716-446655440000")
-        @PathVariable projectId: String,
+        @PathVariable projectId: UUID,
         @Valid @RequestBody request: UpdateProjectMetadataRequest,
     ): ResponseEntity<ApiResponse>
 
@@ -128,6 +129,6 @@ interface ProjectControllerDocs {
     )
     fun deleteProject(
         @Parameter(description = "프로젝트 식별자", example = "550e8400-e29b-41d4-a716-446655440000")
-        @PathVariable projectId: String,
+        @PathVariable projectId: UUID,
     ): ResponseEntity<ApiResponse>
 }

@@ -22,7 +22,7 @@ class GetStructureStatusService(
     @Transactional(readOnly = true)
     fun execute(projectId: UUID): GetStructureStatusResponse {
         val project =
-            projectRepository.findByIdAndDeletedAtIsNull(projectId.toString())
+            projectRepository.findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
         val status = project.status

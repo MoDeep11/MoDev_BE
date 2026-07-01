@@ -10,13 +10,14 @@ import modeep.modev.global.common.BaseEntity
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import java.time.Instant
+import java.util.UUID
 
 @Entity
 @Table(name = "projects")
 class Project(
     @Id
     @Column(name = "project_id", nullable = false, length = 50)
-    val id: String,
+    val id: UUID,
     @Column(name = "user_id")
     val userId: Long? = null,
     @Column(name = "project_name", nullable = false, length = 50)
