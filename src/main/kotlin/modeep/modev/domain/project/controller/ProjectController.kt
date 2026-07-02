@@ -94,7 +94,7 @@ class ProjectController(
             )
 
     @PatchMapping("/{projectId}/stacks")
-    fun updateProjectStacks(
+    override fun updateProjectStacks(
         @PathVariable projectId: UUID,
         @Valid @RequestBody request: UpdateProjectStacksRequest,
     ): ResponseEntity<ApiResponse> =
@@ -109,7 +109,7 @@ class ProjectController(
             )
 
     @PostMapping("/{projectId}/download")
-    fun issueDownloadUrl(
+    override fun issueDownloadUrl(
         @PathVariable projectId: UUID,
     ): ResponseEntity<ApiResponse> =
         ResponseEntity
