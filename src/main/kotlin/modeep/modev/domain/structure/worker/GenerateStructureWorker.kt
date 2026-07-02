@@ -10,11 +10,11 @@ import modeep.modev.domain.structure.service.StreamStructureService
 import modeep.modev.domain.structure.service.vo.StreamStructureEvent
 import modeep.modev.domain.structure.worker.event.GenerateStructureEvent
 import modeep.modev.global.exception.error.StructureErrorCode
-import org.springframework.context.event.EventListener
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.codec.ServerSentEvent
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
+import org.springframework.transaction.event.TransactionalEventListener
 import org.springframework.web.reactive.function.client.WebClient
 
 private val log = KotlinLogging.logger {}
@@ -27,7 +27,7 @@ class GenerateStructureWorker(
     private val objectMapper: ObjectMapper,
 ) {
     @Async("structureExecutor")
-    @EventListener
+    @TransactionalEventListener
     fun handle(event: GenerateStructureEvent) {
         val projectId = event.projectId
         val streamId = projectId.toString()
