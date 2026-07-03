@@ -1,5 +1,6 @@
 package modeep.modev.global.security.config
 
+import modeep.modev.global.security.handler.CustomAccessDeniedHandler
 import modeep.modev.global.security.jwt.JwtAuthenticationEntryPoint
 import modeep.modev.global.security.jwt.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
@@ -14,6 +15,7 @@ import org.springframework.web.cors.CorsConfigurationSource
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
+    private val accessDeniedHandler: CustomAccessDeniedHandler,
     private val corsConfigurationSource: CorsConfigurationSource,
 ) {
     @Bean
@@ -28,10 +30,13 @@ class SecurityConfig(
             }
             .exceptionHandling {
                 it.authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                it.accessDeniedHandler(accessDeniedHandler)
             }
             .authorizeHttpRequests {
                 it
-                    .requestMatchers("/auth/logout")
+                    .requestMatchers(
+                        "/auth/logout",
+                    )
                     .authenticated()
                     .anyRequest()
                     .permitAll()
