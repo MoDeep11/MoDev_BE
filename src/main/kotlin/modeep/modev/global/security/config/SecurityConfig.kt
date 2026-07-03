@@ -5,6 +5,7 @@ import modeep.modev.global.security.jwt.JwtAuthenticationEntryPoint
 import modeep.modev.global.security.jwt.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
@@ -34,12 +35,15 @@ class SecurityConfig(
             }
             .authorizeHttpRequests {
                 it
+                    .requestMatchers(HttpMethod.POST, "/projects").permitAll()
                     .requestMatchers(
                         "/auth/logout",
-                    )
-                    .authenticated()
-                    .anyRequest()
-                    .permitAll()
+                        "/auth/token/refresh",
+                        "/projects/{projectId}/**",
+                        "/projects/{projectId}",
+                        "/projects",
+                    ).authenticated()
+                    .anyRequest().permitAll()
             }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
