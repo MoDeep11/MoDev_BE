@@ -38,15 +38,30 @@ class SecurityConfig(
             }
             .authorizeHttpRequests {
                 it
-                    .requestMatchers(HttpMethod.POST, "/projects").permitAll()
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers(
-                        "/auth/logout",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui.html",
+                    ).permitAll()
+                    .requestMatchers(
+                        HttpMethod.POST,
+                        "/auth/signup",
+                        "/auth/login",
                         "/auth/token/refresh",
-                        "/projects/{projectId}/**",
-                        "/projects/{projectId}",
-                        "/projects",
-                    ).authenticated()
-                    .anyRequest().permitAll()
+                        "/auth/email/send",
+                        "/auth/email/verify",
+                        "/auth/logout",
+                    ).permitAll()
+                    .requestMatchers(HttpMethod.POST, "/projects").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/catalog/fields").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/catalog/stacks").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/catalog/dependencies").permitAll()
+                    .requestMatchers(
+                        "/projects/structures",
+                        "/projects/structures/**",
+                    ).permitAll()
+                    .anyRequest().authenticated()
             }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
