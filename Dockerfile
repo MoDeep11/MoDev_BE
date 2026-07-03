@@ -1,0 +1,28 @@
+FROM eclipse-temurin:21-jdk AS build
+
+WORKDIR /app
+
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle.kts .
+COPY settings.gradle.kts .
+
+RUN chmod +x ./gradlew
+RUN ./gradlew dependencies --no-daemon
+
+COPY src src
+
+RUN ./gradlew bootJar -x test --no-daemon
+
+
+FROM eclipse-temurin:21-jre
+RUN useradd -r -m modev
+
+WORKDIR /app
+
+COPY --from=build /app/build/libs/*.jar app.jar
+
+EXPOSE 8080
+USER modev
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
