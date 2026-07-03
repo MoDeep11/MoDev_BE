@@ -22,6 +22,7 @@ repositories {
 }
 
 extra["sentryVersion"] = "8.27.0"
+extra["awsVersion"] = "3.4.0"
 
 dependencies {
     // kotlin
@@ -41,6 +42,9 @@ dependencies {
     // spring webflux
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 
+    // aws
+    implementation("io.awspring.cloud:spring-cloud-aws-starter-s3")
+
     // jpa
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
@@ -52,6 +56,9 @@ dependencies {
 
     // security
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
     // mail
     implementation("org.springframework.boot:spring-boot-starter-mail")
@@ -80,6 +87,7 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom("io.sentry:sentry-bom:${property("sentryVersion")}")
+        mavenBom("io.awspring.cloud:spring-cloud-aws-dependencies:${property("awsVersion")}")
     }
 }
 
@@ -97,4 +105,5 @@ allOpen {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    systemProperty("spring.profiles.active", "test")
 }

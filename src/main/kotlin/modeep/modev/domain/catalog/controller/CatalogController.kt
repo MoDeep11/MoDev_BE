@@ -17,16 +17,16 @@ class CatalogController(
     private val getDependenciesService: GetDependenciesService,
     private val getFieldsService: GetFieldsService,
     private val getTechStacksService: GetTechStacksService,
-) {
+) : CatalogControllerDocs {
     @GetMapping("/fields")
-    fun getFields(): ApiResponse =
+    override fun getFields(): ApiResponse =
         ApiResponse(
             success = true,
             data = getFieldsService.execute(),
         )
 
     @GetMapping("/stacks")
-    fun getTechStacks(
+    override fun getTechStacks(
         @RequestParam fieldIds: String?,
         @RequestParam(required = false) keyword: String?,
     ): ApiResponse {
@@ -39,7 +39,7 @@ class CatalogController(
     }
 
     @GetMapping("/dependencies")
-    fun getDependencies(
+    override fun getDependencies(
         @RequestParam stackIds: String?,
         @RequestParam(required = false) keyword: String?,
     ): ApiResponse {

@@ -1,4 +1,7 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
+
   # Database
   datasource:
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
@@ -29,14 +32,20 @@ spring:
 
   # Mail
   mail:
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    sender:
+      address: ${MAIL_FROM_ADDRESS:${MAIL_USERNAME:}}
+      name: ${MAIL_FROM_NAME:MoDev}
     properties:
       mail:
         smtp:
           auth: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
           starttls:
             enable: true
 
@@ -45,6 +54,17 @@ spring:
     basename: messages
     encoding: UTF-8
     cache-duration: 3600
+
+  # AWS S3
+  cloud:
+    aws:
+      s3:
+        bucket: ${AWS_S3_BUCKET}
+      region:
+        static: ${AWS_REGION}
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
 
 # Server
 server:
@@ -57,8 +77,8 @@ server:
 # JWT
 jwt:
   secret: ${JWT_SECRET}
-  access-token-expiration: 3600000      # 1시간
-  refresh-token-expiration: 1209600000  # 14일
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:3600000}      # 1시간
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:1209600000} # 14일
 
 # AI Server
 ai:
@@ -69,16 +89,18 @@ ai:
       connect: 5000
       read: 35000
 
-# AWS S3
-cloud:
-  aws:
-    s3:
-      bucket: ${AWS_S3_BUCKET}
-    region:
-      static: ${AWS_REGION}
-    credentials:
-      access-key: ${AWS_ACCESS_KEY}
-      secret-key: ${AWS_SECRET_KEY}
+stream:
+  structure:
+    timeout-millis: 600000 # 10분
+    heartbeat-interval-millis: 30000 # 30초
+
+catalog:
+  registry:
+    sync:
+      enabled: ${CATALOG_REGISTRY_SYNC_ENABLED:true}
+      cron: ${CATALOG_REGISTRY_SYNC_CRON:0 0 3 * * *}
+      timeout-millis: ${CATALOG_REGISTRY_SYNC_TIMEOUT_MILLIS:5000}
+      github-token: ${GITHUB_TOKEN:}
 
 # Springdoc (비활성화)
 springdoc:

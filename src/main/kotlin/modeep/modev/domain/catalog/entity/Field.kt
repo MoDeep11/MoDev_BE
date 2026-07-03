@@ -12,7 +12,7 @@ import modeep.modev.global.common.BaseEntity
 @Table(name = "fields")
 class Field(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long,
+    val id: Long? = null,
     @Column(name = "public_id", unique = true, nullable = false, updatable = false, length = 100)
     val publicId: String,
     @Column(nullable = false)
