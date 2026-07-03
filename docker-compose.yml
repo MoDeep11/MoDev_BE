@@ -1,6 +1,6 @@
 services:
   app:
-    image: ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPOSITORY}:latest
+    image: kusuri12/modev-be:latest
     expose:
       - "8080"
     env_file:
