@@ -27,12 +27,12 @@ class GetStructureStatusServiceTest {
     @Test
     fun `returns pending status without result`() {
         val projectId = UUID.randomUUID()
-        `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId.toString()))
+        `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId))
             .thenReturn(project(projectId, ProjectStatus.PENDING))
 
         val response = service.execute(projectId)
 
-        assertEquals(projectId.toString(), response.projectId)
+        assertEquals(projectId, response.projectId)
         assertEquals("PENDING", response.status)
         assertNull(response.result)
         verifyNoInteractions(structureFileRepository)
@@ -41,7 +41,7 @@ class GetStructureStatusServiceTest {
     @Test
     fun `returns completed status with rebuilt file tree`() {
         val projectId = UUID.randomUUID()
-        `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId.toString()))
+        `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId))
             .thenReturn(project(projectId, ProjectStatus.COMPLETED))
         `when`(structureFileRepository.findAllByProjectIdOrderByPathAsc(projectId))
             .thenReturn(
@@ -80,7 +80,7 @@ class GetStructureStatusServiceTest {
         status: ProjectStatus,
     ): Project =
         Project(
-            id = projectId.toString(),
+            id = projectId,
             projectName = "test",
             status = status,
         )

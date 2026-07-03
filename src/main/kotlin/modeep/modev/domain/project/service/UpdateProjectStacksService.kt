@@ -3,9 +3,8 @@ package modeep.modev.domain.project.service
 import modeep.modev.domain.catalog.repository.DependencyRepository
 import modeep.modev.domain.catalog.repository.FieldRepository
 import modeep.modev.domain.catalog.repository.TechStackRepository
-import modeep.modev.domain.project.controller.dto.request.SaveProjectRequest
-import modeep.modev.domain.project.controller.dto.response.SaveProjectResponse
-import modeep.modev.domain.project.entity.Project
+import modeep.modev.domain.project.controller.dto.request.UpdateProjectStacksRequest
+import modeep.modev.domain.project.controller.dto.response.UpdateProjectStacksResponse
 import modeep.modev.domain.project.entity.ProjectDependency
 import modeep.modev.domain.project.entity.ProjectField
 import modeep.modev.domain.project.entity.ProjectTechStack
@@ -16,54 +15,66 @@ import modeep.modev.domain.project.repository.ProjectDependencyRepository
 import modeep.modev.domain.project.repository.ProjectFieldRepository
 import modeep.modev.domain.project.repository.ProjectRepository
 import modeep.modev.domain.project.repository.ProjectTechStackRepository
+import modeep.modev.domain.structure.controller.dto.request.GenerateStructureRequest
+import modeep.modev.domain.structure.repository.StructureFileRepository
+import modeep.modev.domain.structure.service.GenerateStructureService
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.GlobalErrorCode
 import modeep.modev.global.exception.error.ProjectErrorCode
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @Service
-class PostProjectService(
+class UpdateProjectStacksService(
     private val projectRepository: ProjectRepository,
     private val fieldRepository: FieldRepository,
-    private val dependencyRepository: DependencyRepository,
     private val techStackRepository: TechStackRepository,
+    private val dependencyRepository: DependencyRepository,
     private val projectFieldRepository: ProjectFieldRepository,
     private val projectTechStackRepository: ProjectTechStackRepository,
     private val projectDependencyRepository: ProjectDependencyRepository,
+    private val structureFileRepository: StructureFileRepository,
+    private val generateStructureService: GenerateStructureService,
 ) {
     @Transactional
-    fun saveProject(request: SaveProjectRequest): SaveProjectResponse {
-        val fields = fieldRepository.findByPublicIdIn(request.fieldIds.distinct())
-        val stacks = techStackRepository.findByPublicIdIn(request.stackIds.distinct())
-        val dependencies = dependencyRepository.findByPublicIdIn(request.dependencyIds.distinct())
+    fun execute(
+        projectId: UUID,
+        request: UpdateProjectStacksRequest,
+    ): UpdateProjectStacksResponse {
+        projectRepository.findByIdAndDeletedAtIsNull(projectId)
+            ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
+
+        val fieldIds = request.fieldIds.distinct()
+        val stackIds = request.stackIds.distinct()
+        val dependencyIds = request.dependencyIds.distinct()
+        val fields = fieldRepository.findByPublicIdIn(fieldIds)
+        val stacks = techStackRepository.findByPublicIdIn(stackIds)
+        val dependencies = dependencyRepository.findByPublicIdIn(dependencyIds)
+
         validateCatalogIds(request, fields.map { it.publicId }, stacks.map { it.publicId }, dependencies.map { it.publicId })
-        validateStackCombination(fields.map { it.publicId }.toSet(), stacks.map { it.publicId }.toSet())
+        validateStackCombination(fields.mapTo(mutableSetOf()) { it.publicId }, stacks.mapTo(mutableSetOf()) { it.publicId })
+        validateDependencyCombination(stacks.mapTo(mutableSetOf()) { it.publicId }, dependencies.mapTo(mutableSetOf()) { it.publicId })
 
-        val project =
-            projectRepository.save(
-                Project(
-                    projectName = request.projectName,
-                    description = request.description.normalizeDescription(),
-                ),
-            )
-        val projectId = requireNotNull(project.id)
+        projectFieldRepository.deleteAllByIdProjectId(projectId)
+        projectTechStackRepository.deleteAllByIdProjectId(projectId)
+        projectDependencyRepository.deleteAllByIdProjectId(projectId)
 
-        projectFieldRepository.saveAll(
+        projectFieldRepository.saveAllAndFlush(
             fields.map {
                 ProjectField(
                     id = ProjectFieldId(projectId = projectId, fieldId = requireNotNull(it.id)),
                 )
             },
         )
-        projectTechStackRepository.saveAll(
+        projectTechStackRepository.saveAllAndFlush(
             stacks.map {
                 ProjectTechStack(
                     id = ProjectTechStackId(projectId = projectId, techStackId = requireNotNull(it.id)),
                 )
             },
         )
-        projectDependencyRepository.saveAll(
+        projectDependencyRepository.saveAllAndFlush(
             dependencies.map {
                 ProjectDependency(
                     id = ProjectDependencyId(projectId = projectId, dependencyId = requireNotNull(it.id)),
@@ -71,17 +82,17 @@ class PostProjectService(
             },
         )
 
-        return SaveProjectResponse(
-            projectId = projectId,
-            projectName = project.projectName,
-            createdAt = project.createdAt,
+        structureFileRepository.deleteAllByProjectId(projectId)
+        val generation = generateStructureService.execute(GenerateStructureRequest(projectId))
+
+        return UpdateProjectStacksResponse(
+            projectId = generation.projectId,
+            status = generation.status,
         )
     }
 
-    private fun String?.normalizeDescription(): String? = this?.trim()?.takeIf { it.isNotEmpty() }
-
     private fun validateCatalogIds(
-        request: SaveProjectRequest,
+        request: UpdateProjectStacksRequest,
         fieldIds: List<String>,
         stackIds: List<String>,
         dependencyIds: List<String>,
@@ -105,16 +116,34 @@ class PostProjectService(
         fieldIds: Set<String>,
         stackIds: Set<String>,
     ) {
-        val mappedStackIds =
+        val supportedStackIds =
             techStackRepository
                 .findStacksByFieldPublicIds(fieldIds)
                 .mapTo(mutableSetOf()) { it.publicId }
-        val invalidStackIds = stackIds - mappedStackIds
+        val invalidStackIds = stackIds - supportedStackIds
 
         if (invalidStackIds.isNotEmpty()) {
             throw BusinessException(
                 errorCode = ProjectErrorCode.INVALID_STACK_COMBINATION,
                 details = mapOf("stackIds" to invalidStackIds),
+            )
+        }
+    }
+
+    private fun validateDependencyCombination(
+        stackIds: Set<String>,
+        dependencyIds: Set<String>,
+    ) {
+        val supportedDependencyIds =
+            dependencyRepository
+                .findByTechStackPublicIdInOrderByIdAsc(stackIds)
+                .mapTo(mutableSetOf()) { it.publicId }
+        val invalidDependencyIds = dependencyIds - supportedDependencyIds
+
+        if (invalidDependencyIds.isNotEmpty()) {
+            throw BusinessException(
+                errorCode = ProjectErrorCode.INVALID_STACK_COMBINATION,
+                details = mapOf("dependencyIds" to invalidDependencyIds),
             )
         }
     }

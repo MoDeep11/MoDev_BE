@@ -1,6 +1,7 @@
 package modeep.modev.domain.project.controller.dto.response
 
 import java.time.Instant
+import java.util.UUID
 
 data class GetProjectsResponse(
     val projects: List<ProjectSummaryResponse>,
@@ -8,7 +9,7 @@ data class GetProjectsResponse(
 )
 
 data class ProjectSummaryResponse(
-    val projectId: String,
+    val projectId: UUID,
     val projectName: String,
     val description: String?,
     val stacks: List<String>,

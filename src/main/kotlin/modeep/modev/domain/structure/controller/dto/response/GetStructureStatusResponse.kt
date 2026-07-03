@@ -1,7 +1,9 @@
 package modeep.modev.domain.structure.controller.dto.response
 
+import java.util.UUID
+
 data class GetStructureStatusResponse(
-    val projectId: String,
+    val projectId: UUID,
     val status: String,
     val result: StructureResultResponse?,
 )

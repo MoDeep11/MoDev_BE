@@ -4,6 +4,7 @@ import modeep.modev.domain.catalog.entity.Dependency
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
+import java.util.UUID
 
 interface DependencyRepository : JpaRepository<Dependency, Long> {
     fun findByPublicId(publicId: String): Dependency?
@@ -21,7 +22,7 @@ interface DependencyRepository : JpaRepository<Dependency, Long> {
         """,
     )
     fun findByProjectId(
-        @Param("projectId") projectId: String,
+        @Param("projectId") projectId: UUID,
     ): List<Dependency>
 
     fun findByTechStackPublicIdInOrderByIdAsc(stackIds: Collection<String>): List<Dependency>

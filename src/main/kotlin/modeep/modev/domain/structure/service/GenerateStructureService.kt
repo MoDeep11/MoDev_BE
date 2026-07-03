@@ -27,7 +27,7 @@ class GenerateStructureService(
 ) {
     @Transactional
     fun execute(request: GenerateStructureRequest): GenerateStructureResponse {
-        val projectId = request.projectId.toString()
+        val projectId = request.projectId
         val project =
             projectRepository.findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
