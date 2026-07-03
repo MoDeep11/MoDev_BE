@@ -1,7 +1,6 @@
 services:
   app:
-    build:
-      context: .
+    image: ${DOCKERHUB_USERNAME}/${DOCKERHUB_REPOSITORY}:latest
     expose:
       - "8080"
     env_file:
