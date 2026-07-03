@@ -19,6 +19,7 @@ data class GetProjectDetailResponse(
 data class ProjectStackResponse(
     val stackId: String,
     val name: String,
+    val version: String?,
     val category: String,
 )
 
