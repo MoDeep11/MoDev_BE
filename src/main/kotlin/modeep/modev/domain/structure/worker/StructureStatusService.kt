@@ -66,7 +66,7 @@ class StructureStatusService(
                 .findByIdAndDeletedAtIsNullForUpdate(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
-        // 상태가 PENDING(생성 요청을 한 상태인지) 검증
+        // 상태가 PENDING(생성 요청을 한 상태인지)인지 검증
         if (project.status != ProjectStatus.PENDING) {
             throw BusinessException(ProjectErrorCode.PROJECT_STRUCTURE_NOT_PENDING)
         }

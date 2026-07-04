@@ -49,7 +49,7 @@ class StreamStructureService(
                 data =
                     ConnectedStreamResponse(
                         projectId = id,
-                        message = "연결되었습니다. 생성을 시작합니다.",
+                        message = "연결되었습니다.",
                     ),
             )
 
