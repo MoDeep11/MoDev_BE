@@ -4,6 +4,7 @@ import io.jsonwebtoken.JwtException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.MDC
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -28,6 +29,7 @@ class JwtAuthenticationFilter(
 
         try {
             val principal = jwtTokenProvider.parseAccessToken(token)
+            val userId = principal.userId
             val authentication =
                 UsernamePasswordAuthenticationToken(
                     principal,
@@ -36,6 +38,7 @@ class JwtAuthenticationFilter(
                 )
 
             SecurityContextHolder.getContext().authentication = authentication
+            MDC.put("userId", userId)
             filterChain.doFilter(request, response)
         } catch (exception: JwtException) {
             SecurityContextHolder.clearContext()
@@ -43,6 +46,8 @@ class JwtAuthenticationFilter(
         } catch (exception: IllegalArgumentException) {
             SecurityContextHolder.clearContext()
             jwtAuthenticationEntryPoint.commence(request, response, exception)
+        } finally {
+            MDC.remove("userId")
         }
     }
 
