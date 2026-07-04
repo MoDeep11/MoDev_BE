@@ -9,6 +9,7 @@ import modeep.modev.domain.catalog.repository.FieldRepository
 import modeep.modev.domain.catalog.repository.TechStackRepository
 import modeep.modev.domain.project.controller.dto.request.UpdateProjectStacksRequest
 import modeep.modev.domain.project.entity.Project
+import modeep.modev.domain.project.entity.ProjectStatus
 import modeep.modev.domain.project.repository.ProjectDependencyRepository
 import modeep.modev.domain.project.repository.ProjectFieldRepository
 import modeep.modev.domain.project.repository.ProjectRepository
@@ -116,12 +117,12 @@ class UpdateProjectStacksServiceTest {
             ),
         ).thenReturn(listOf(security, jpa))
         `when`(generateStructureService.execute(GenerateStructureRequest(projectId)))
-            .thenReturn(GenerateStructureResponse(projectId, "PENDING"))
+            .thenReturn(GenerateStructureResponse(projectId, ProjectStatus.PENDING))
 
         val response = service.execute(projectId, request)
 
         assertEquals(projectId, response.projectId)
-        assertEquals("PENDING", response.status)
+        assertEquals(ProjectStatus.PENDING, response.status)
         verify(projectFieldRepository).deleteAllByIdProjectId(projectId)
         verify(projectTechStackRepository).deleteAllByIdProjectId(projectId)
         verify(projectDependencyRepository).deleteAllByIdProjectId(projectId)

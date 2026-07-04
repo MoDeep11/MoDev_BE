@@ -2,6 +2,7 @@ package modeep.modev.domain.project.controller
 
 import modeep.modev.domain.project.controller.dto.request.UpdateProjectStacksRequest
 import modeep.modev.domain.project.controller.dto.response.UpdateProjectStacksResponse
+import modeep.modev.domain.project.entity.ProjectStatus
 import modeep.modev.domain.project.service.DeleteProjectService
 import modeep.modev.domain.project.service.GetProjectService
 import modeep.modev.domain.project.service.PatchProjectService
@@ -42,7 +43,7 @@ class ProjectControllerTest {
                 stackIds = listOf("stack_spring", "stack_react", "stack_redis"),
                 dependencyIds = listOf("dep_spring_security", "dep_jpa"),
             )
-        val serviceResponse = UpdateProjectStacksResponse(projectId, "PENDING")
+        val serviceResponse = UpdateProjectStacksResponse(projectId, ProjectStatus.PENDING)
         `when`(updateProjectStacksService.execute(projectId, request)).thenReturn(serviceResponse)
 
         val response = controller.updateProjectStacks(projectId, request)
