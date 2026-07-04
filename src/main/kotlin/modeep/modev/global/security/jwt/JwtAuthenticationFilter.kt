@@ -16,6 +16,14 @@ class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
     private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
 ) : OncePerRequestFilter() {
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean {
+        val path = request.requestURI.removePrefix(request.contextPath)
+        return path == TOKEN_REFRESH_PATH ||
+            path == "$TOKEN_REFRESH_PATH/" ||
+            path.endsWith(TOKEN_REFRESH_PATH) ||
+            path.endsWith("$TOKEN_REFRESH_PATH/")
+    }
+
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
@@ -63,5 +71,6 @@ class JwtAuthenticationFilter(
     private companion object {
         const val AUTHORIZATION_HEADER = "Authorization"
         const val BEARER_PREFIX = "Bearer "
+        const val TOKEN_REFRESH_PATH = "/auth/token/refresh"
     }
 }

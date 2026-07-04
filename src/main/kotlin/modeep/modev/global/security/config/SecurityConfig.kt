@@ -45,10 +45,15 @@ class SecurityConfig(
                         "/swagger-ui.html",
                     ).permitAll()
                     .requestMatchers(
+                        "/auth/token/refresh",
+                        "/auth/token/refresh/",
+                        "/api/auth/token/refresh",
+                        "/api/auth/token/refresh/",
+                    ).permitAll()
+                    .requestMatchers(
                         HttpMethod.POST,
                         "/auth/signup",
                         "/auth/login",
-                        "/auth/token/refresh",
                         "/auth/email/send",
                         "/auth/email/verify",
                         "/auth/logout",
