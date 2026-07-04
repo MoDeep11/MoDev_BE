@@ -71,6 +71,7 @@ class UpdateProjectStacksService(
             stacks.map {
                 ProjectTechStack(
                     id = ProjectTechStackId(projectId = projectId, techStackId = requireNotNull(it.id)),
+                    version = it.version,
                 )
             },
         )
@@ -78,6 +79,7 @@ class UpdateProjectStacksService(
             dependencies.map {
                 ProjectDependency(
                     id = ProjectDependencyId(projectId = projectId, dependencyId = requireNotNull(it.id)),
+                    version = it.version,
                 )
             },
         )

@@ -47,6 +47,7 @@ class GetProjectService(
                     ProjectStackResponse(
                         stackId = it.publicId,
                         name = it.name,
+                        version = it.version,
                         category = it.category.name,
                     )
                 },
