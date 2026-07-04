@@ -2,12 +2,14 @@ package modeep.modev.domain.structure.service
 
 import modeep.modev.domain.structure.controller.dto.response.ConnectedStreamResponse
 import modeep.modev.domain.structure.service.vo.StreamStructureEvent
+import modeep.modev.domain.structure.worker.StructureStatusService
 import modeep.modev.global.config.properties.StructureStreamProperties
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.stereotype.Service
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.time.Duration
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledFuture
 
@@ -16,11 +18,13 @@ class StreamStructureService(
     private val properties: StructureStreamProperties,
     @param:Qualifier("structureHeartbeatScheduler")
     private val heartbeatScheduler: ThreadPoolTaskScheduler,
+    private val structureStatusService: StructureStatusService,
 ) {
     private val emitters = ConcurrentHashMap<String, SseEmitter>()
     private val heartbeatTasks = ConcurrentHashMap<String, ScheduledFuture<*>>()
 
-    fun connect(id: String): SseEmitter {
+    fun connect(projectId: UUID): SseEmitter {
+        val id = projectId.toString()
         val emitter = SseEmitter(properties.timeoutMillis)
         complete(id)
         emitters[id] = emitter
@@ -51,6 +55,8 @@ class StreamStructureService(
         if (emitters[id] == emitter) {
             startHeartbeat(id)
         }
+
+        structureStatusService.publishGenerating(projectId)
 
         return emitter
     }

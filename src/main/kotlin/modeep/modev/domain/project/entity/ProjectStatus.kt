@@ -1,8 +1,8 @@
 package modeep.modev.domain.project.entity
 
 enum class ProjectStatus {
+    NOT_CREATED,
     PENDING,
-    ACTIVE,
     GENERATING,
     COMPLETED,
     FAILED,
