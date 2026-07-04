@@ -51,6 +51,10 @@ dependencies {
     // jpa
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
+    // flyway
+    implementation("org.flywaydb:flyway-core")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
+
     // redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
