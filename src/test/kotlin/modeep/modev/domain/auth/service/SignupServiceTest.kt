@@ -5,12 +5,15 @@ import modeep.modev.domain.user.entity.User
 import modeep.modev.domain.user.repository.UserRepository
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.AuthErrorCode
+import modeep.modev.global.security.jwt.JwtTokenProvider
+import modeep.modev.global.security.jwt.RefreshTokenStore
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
 import org.springframework.security.crypto.password.PasswordEncoder
+import java.time.Duration
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -18,13 +21,17 @@ import kotlin.test.assertFailsWith
 class SignupServiceTest {
     private lateinit var userRepository: UserRepository
     private lateinit var passwordEncoder: PasswordEncoder
+    private lateinit var jwtTokenProvider: JwtTokenProvider
+    private lateinit var refreshTokenStore: RefreshTokenStore
     private lateinit var signupService: SignupService
 
     @BeforeEach
     fun setUp() {
         userRepository = mock(UserRepository::class.java)
         passwordEncoder = mock(PasswordEncoder::class.java)
-        signupService = SignupService(userRepository, passwordEncoder)
+        jwtTokenProvider = mock(JwtTokenProvider::class.java)
+        refreshTokenStore = mock(RefreshTokenStore::class.java)
+        signupService = SignupService(userRepository, passwordEncoder, jwtTokenProvider, refreshTokenStore)
     }
 
     @Test
@@ -37,14 +44,33 @@ class SignupServiceTest {
             )
         `when`(userRepository.existsByEmailIgnoreCase("user@example.com")).thenReturn(false)
         `when`(passwordEncoder.encode("Password1!")).thenReturn("encoded-password")
+        val savedUser =
+            User(
+                id = 1L,
+                email = "user@example.com",
+                passwordHash = "encoded-password",
+            )
         `when`(userRepository.saveAndFlush(org.mockito.ArgumentMatchers.any(User::class.java)))
-            .thenAnswer { it.arguments[0] as User }
+            .thenReturn(savedUser)
+        `when`(jwtTokenProvider.generateAccessToken(savedUser)).thenReturn("access-token")
+        `when`(jwtTokenProvider.generateRefreshToken(savedUser)).thenReturn("refresh-token")
+        `when`(jwtTokenProvider.accessTokenExpiresInSeconds).thenReturn(3600)
+        `when`(jwtTokenProvider.refreshTokenExpirationMillis).thenReturn(1209600000)
 
         val response = signupService.execute(request)
 
-        assertEquals("user@example.com", response.email)
-        assertEquals("UNVERIFIED", response.status)
+        assertEquals("access-token", response.accessToken)
+        assertEquals(3600, response.expiresIn)
+        assertEquals("refresh-token", response.refreshToken)
+        assertEquals(1L, response.user.userId)
+        assertEquals("user@example.com", response.user.email)
+        assertEquals("UNVERIFIED", response.user.status)
         verify(passwordEncoder).encode("Password1!")
+        verify(refreshTokenStore).save(
+            refreshToken = "refresh-token",
+            email = "user@example.com",
+            ttl = Duration.ofDays(14),
+        )
     }
 
     @Test
@@ -61,7 +87,7 @@ class SignupServiceTest {
             }
 
         assertEquals(AuthErrorCode.INVALID_PASSWORD_FORMAT, exception.errorCode)
-        verifyNoInteractions(userRepository, passwordEncoder)
+        verifyNoInteractions(userRepository, passwordEncoder, jwtTokenProvider, refreshTokenStore)
     }
 
     @Test
@@ -78,7 +104,7 @@ class SignupServiceTest {
             }
 
         assertEquals(AuthErrorCode.PASSWORD_MISMATCH, exception.errorCode)
-        verifyNoInteractions(userRepository, passwordEncoder)
+        verifyNoInteractions(userRepository, passwordEncoder, jwtTokenProvider, refreshTokenStore)
     }
 
     @Test

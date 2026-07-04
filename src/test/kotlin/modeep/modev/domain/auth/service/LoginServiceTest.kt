@@ -10,9 +10,11 @@ import modeep.modev.global.security.jwt.JwtTokenProvider
 import modeep.modev.global.security.jwt.RefreshTokenStore
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
 import org.springframework.security.crypto.password.PasswordEncoder
+import java.time.Duration
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -41,7 +43,6 @@ class LoginServiceTest {
         `when`(jwtTokenProvider.generateAccessToken(user)).thenReturn("access-token")
         `when`(jwtTokenProvider.generateRefreshToken(user)).thenReturn("refresh-token")
         `when`(jwtTokenProvider.accessTokenExpiresInSeconds).thenReturn(3600)
-        `when`(jwtTokenProvider.refreshTokenExpiresInSeconds).thenReturn(1209600)
         `when`(jwtTokenProvider.refreshTokenExpirationMillis).thenReturn(1209600000)
 
         val response =
@@ -53,11 +54,16 @@ class LoginServiceTest {
             )
 
         assertEquals("access-token", response.accessToken)
-        assertEquals("Bearer", response.tokenType)
         assertEquals(3600, response.expiresIn)
+        assertEquals("refresh-token", response.refreshToken)
         assertEquals(1L, response.user.userId)
         assertEquals("user@example.com", response.user.email)
         assertEquals("ACTIVE", response.user.status)
+        verify(refreshTokenStore).save(
+            refreshToken = "refresh-token",
+            email = user.email,
+            ttl = Duration.ofDays(14),
+        )
     }
 
     @Test

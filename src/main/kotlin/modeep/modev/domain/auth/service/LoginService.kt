@@ -2,7 +2,6 @@ package modeep.modev.domain.auth.service
 
 import modeep.modev.domain.auth.controller.dto.request.LoginRequest
 import modeep.modev.domain.auth.controller.dto.response.LoginResponse
-import modeep.modev.domain.auth.controller.dto.response.LoginUserResponse
 import modeep.modev.domain.user.entity.UserStatus
 import modeep.modev.domain.user.repository.UserRepository
 import modeep.modev.global.exception.BusinessException
@@ -44,12 +43,11 @@ class LoginService(
             ttl = Duration.ofMillis(jwtTokenProvider.refreshTokenExpirationMillis),
         )
 
-        return LoginResponse(
+        return LoginResponse.from(
             accessToken = jwtTokenProvider.generateAccessToken(user),
             refreshToken = refreshToken,
             expiresIn = jwtTokenProvider.accessTokenExpiresInSeconds,
-            refreshExpiresIn = jwtTokenProvider.refreshTokenExpiresInSeconds,
-            user = LoginUserResponse.from(user),
+            user = user,
         )
     }
 }
