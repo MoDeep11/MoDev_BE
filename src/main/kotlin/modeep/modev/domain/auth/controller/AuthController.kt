@@ -5,8 +5,8 @@ import jakarta.validation.Valid
 import modeep.modev.domain.auth.controller.dto.request.EmailVerificationSendRequest
 import modeep.modev.domain.auth.controller.dto.request.LoginRequest
 import modeep.modev.domain.auth.controller.dto.request.SignupRequest
+import modeep.modev.domain.auth.controller.dto.request.TokenRefreshRequest
 import modeep.modev.domain.auth.controller.dto.request.VerifyCode
-import modeep.modev.domain.auth.controller.dto.response.LoginResponse
 import modeep.modev.domain.auth.service.EmailVerificationService
 import modeep.modev.domain.auth.service.LoginService
 import modeep.modev.domain.auth.service.LogoutService
@@ -21,6 +21,7 @@ import org.springframework.http.ResponseCookie
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
@@ -50,7 +51,7 @@ class AuthController(
         response: HttpServletResponse,
     ): ApiResponse {
         val loginResponse = loginService.execute(request)
-        setRefreshTokenCookie(response, loginResponse)
+        setRefreshTokenCookie(response, loginResponse.refreshToken)
         return ApiResponse(
             success = true,
             data = loginResponse,
@@ -59,18 +60,19 @@ class AuthController(
 
     @PostMapping("/token/refresh")
     override fun refreshToken(
-        @CookieValue(name = REFRESH_TOKEN_COOKIE, defaultValue = "") refreshToken: String,
+        @RequestHeader(name = HttpHeaders.AUTHORIZATION, defaultValue = "") authorization: String,
+        @Valid @RequestBody request: TokenRefreshRequest,
         response: HttpServletResponse,
     ): ApiResponse {
-        if (refreshToken.isBlank()) {
-            throw BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID)
-        }
-
-        val loginResponse = tokenRefreshService.execute(refreshToken)
-        setRefreshTokenCookie(response, loginResponse)
+        val tokenRefreshResponse =
+            tokenRefreshService.execute(
+                refreshToken = request.refreshToken,
+                accessToken = resolveBearerToken(authorization),
+            )
+        setRefreshTokenCookie(response, tokenRefreshResponse.refreshToken)
         return ApiResponse(
             success = true,
-            data = loginResponse,
+            data = tokenRefreshResponse,
         )
     }
 
@@ -112,11 +114,11 @@ class AuthController(
 
     private fun setRefreshTokenCookie(
         response: HttpServletResponse,
-        loginResponse: LoginResponse,
+        refreshToken: String,
     ) {
         val cookie =
             ResponseCookie
-                .from(REFRESH_TOKEN_COOKIE, loginResponse.refreshToken)
+                .from(REFRESH_TOKEN_COOKIE, refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
@@ -142,9 +144,19 @@ class AuthController(
         }
     }
 
+    private fun resolveBearerToken(authorization: String): String {
+        if (!authorization.startsWith(BEARER_PREFIX, ignoreCase = true)) {
+            throw BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID)
+        }
+
+        return authorization.substring(BEARER_PREFIX.length).trim().takeIf { it.isNotBlank() }
+            ?: throw BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID)
+    }
+
     private companion object {
         const val REFRESH_TOKEN_COOKIE = "refreshToken"
         const val REFRESH_TOKEN_COOKIE_PATH = "/auth"
         const val LEGACY_REFRESH_TOKEN_COOKIE_PATH = "/auth/token/refresh"
+        const val BEARER_PREFIX = "Bearer "
     }
 }

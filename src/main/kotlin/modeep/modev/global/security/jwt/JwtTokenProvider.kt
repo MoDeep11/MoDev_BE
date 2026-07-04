@@ -61,6 +61,30 @@ class JwtTokenProvider(
         )
     }
 
+    fun parseAccessTokenForRefresh(token: String): JwtPrincipal {
+        val claims =
+            try {
+                parseClaims(token)
+            } catch (exception: ExpiredJwtException) {
+                exception.claims
+            } catch (exception: JwtException) {
+                throw BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID, cause = exception)
+            } catch (exception: IllegalArgumentException) {
+                throw BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID, cause = exception)
+            }
+
+        if (claims.tokenType() != TokenType.ACCESS.value) {
+            throw BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID)
+        }
+
+        return JwtPrincipal(
+            userId = claims.subject,
+            status =
+                (claims["status"] as? String)
+                    ?: throw BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID),
+        )
+    }
+
     fun parseRefreshToken(token: String): String {
         val claims =
             try {

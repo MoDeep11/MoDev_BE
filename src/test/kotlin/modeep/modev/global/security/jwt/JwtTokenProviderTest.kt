@@ -1,5 +1,6 @@
 package modeep.modev.global.security.jwt
 
+import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import modeep.modev.domain.user.entity.User
@@ -39,6 +40,29 @@ class JwtTokenProviderTest {
         assertEquals(3600, provider.accessTokenExpiresInSeconds)
 
         val principal = provider.parseAccessToken(token)
+        assertEquals("1", principal.userId)
+        assertEquals("ACTIVE", principal.status)
+    }
+
+    @Test
+    fun `parses expired access token for refresh`() {
+        val secret = "test-secret-key-that-is-at-least-32-bytes-long"
+        val provider = JwtTokenProvider(secret, -1_000, 1_209_600_000)
+        val user =
+            User(
+                id = 1L,
+                email = "user@example.com",
+                passwordHash = "encoded-password",
+                status = UserStatus.ACTIVE,
+            )
+
+        val token = provider.generateAccessToken(user)
+
+        assertFailsWith<ExpiredJwtException> {
+            provider.parseAccessToken(token)
+        }
+
+        val principal = provider.parseAccessTokenForRefresh(token)
         assertEquals("1", principal.userId)
         assertEquals("ACTIVE", principal.status)
     }

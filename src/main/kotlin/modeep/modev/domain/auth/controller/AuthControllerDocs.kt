@@ -13,11 +13,13 @@ import jakarta.validation.Valid
 import modeep.modev.domain.auth.controller.dto.request.EmailVerificationSendRequest
 import modeep.modev.domain.auth.controller.dto.request.LoginRequest
 import modeep.modev.domain.auth.controller.dto.request.SignupRequest
+import modeep.modev.domain.auth.controller.dto.request.TokenRefreshRequest
 import modeep.modev.domain.auth.controller.dto.request.VerifyCode
 import modeep.modev.global.response.ApiResponse
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
 
 @Tag(name = "Auth", description = "인증 관련 API")
@@ -32,7 +34,33 @@ interface AuthControllerDocs {
             SwaggerApiResponse(
                 responseCode = "201",
                 description = "회원가입 성공",
-                content = [Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = Schema(implementation = ApiResponse::class))],
+                content = [
+                    Content(
+                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        schema = Schema(implementation = ApiResponse::class),
+                        examples = [
+                            ExampleObject(
+                                value =
+                                    """
+                                    {
+                                      "success": true,
+                                      "data": {
+                                        "accessToken": "eyJhbGci...",
+                                        "expiresIn": 3600,
+                                        "refreshToken": "eyJhbGci...",
+                                        "user": {
+                                          "userId": 1,
+                                          "email": "user@example.com",
+                                          "status": "UNVERIFIED"
+                                        }
+                                      },
+                                      "error": null
+                                    }
+                                    """,
+                            ),
+                        ],
+                    ),
+                ],
             ),
             SwaggerApiResponse(responseCode = "400", description = "입력값 유효성 오류"),
             SwaggerApiResponse(responseCode = "409", description = "이메일 중복"),
@@ -64,7 +92,13 @@ interface AuthControllerDocs {
                                       "success": true,
                                       "data": {
                                         "accessToken": "jwt.access.token",
-                                        "expiresIn": 3600
+                                        "expiresIn": 3600,
+                                        "refreshToken": "jwt.refresh.token",
+                                        "user": {
+                                          "userId": 1,
+                                          "email": "user@example.com",
+                                          "status": "ACTIVE"
+                                        }
                                       },
                                       "error": null
                                     }
@@ -112,8 +146,9 @@ interface AuthControllerDocs {
         ],
     )
     fun refreshToken(
-        @Parameter(hidden = true)
-        @CookieValue(name = "refreshToken", defaultValue = "") refreshToken: String,
+        @Parameter(description = "Expired access token. Format: Bearer {accessToken}")
+        @RequestHeader(name = "Authorization", defaultValue = "") authorization: String,
+        @Valid @RequestBody request: TokenRefreshRequest,
         @Parameter(hidden = true) response: HttpServletResponse,
     ): ApiResponse
 
