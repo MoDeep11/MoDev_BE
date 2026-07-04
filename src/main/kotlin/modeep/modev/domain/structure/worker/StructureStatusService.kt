@@ -66,9 +66,13 @@ class StructureStatusService(
                 .findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
+        // 상태가 PENDING(생성 요청을 한 상태인지) 검증
         if (project.status != ProjectStatus.PENDING) {
             throw BusinessException(ProjectErrorCode.PROJECT_STRUCTURE_NOT_PENDING)
         }
+
+        // GENERATING 상태로 변경하여 같은 요청이 2번 들어와 이벤트를 2번 발행하는 것 방지
+        markGenerating(projectId)
 
         val fields = fieldRepository.findByProjectId(projectId)
         val techStacks = techStackRepository.findByProjectId(projectId)
@@ -94,7 +98,6 @@ class StructureStatusService(
         )
     }
 
-    @Transactional
     fun markGenerating(projectId: UUID) {
         updateProject(projectId) {
             status = ProjectStatus.GENERATING

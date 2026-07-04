@@ -33,8 +33,6 @@ class GenerateStructureWorker(
         val streamId = projectId.toString()
 
         try {
-            structureStatusService.markGenerating(projectId)
-
             webClient.post()
                 .uri("/ai/structures/generate")
                 .bodyValue(event)
