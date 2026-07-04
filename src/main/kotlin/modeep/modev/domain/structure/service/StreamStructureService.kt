@@ -42,21 +42,26 @@ class StreamStructureService(
             cleanup(id)
         }
 
-        send(
-            id = id,
-            event = StreamStructureEvent.CONNECTED,
-            data =
-                ConnectedStreamResponse(
-                    projectId = id,
-                    message = "연결되었습니다. 생성을 시작합니다.",
-                ),
-        )
+        try {
+            send(
+                id = id,
+                event = StreamStructureEvent.CONNECTED,
+                data =
+                    ConnectedStreamResponse(
+                        projectId = id,
+                        message = "연결되었습니다. 생성을 시작합니다.",
+                    ),
+            )
 
-        if (emitters[id] == emitter) {
-            startHeartbeat(id)
+            if (emitters[id] == emitter) {
+                startHeartbeat(id)
+            }
+
+            structureStatusService.publishGenerating(projectId)
+        } catch (e: Exception) {
+            complete(id)
+            throw e
         }
-
-        structureStatusService.publishGenerating(projectId)
 
         return emitter
     }
