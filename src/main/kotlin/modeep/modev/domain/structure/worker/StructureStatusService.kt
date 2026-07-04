@@ -98,12 +98,6 @@ class StructureStatusService(
         )
     }
 
-    fun markGenerating(projectId: UUID) {
-        updateProject(projectId) {
-            status = ProjectStatus.GENERATING
-        }
-    }
-
     @Transactional
     fun markCompleted(
         projectId: UUID,
