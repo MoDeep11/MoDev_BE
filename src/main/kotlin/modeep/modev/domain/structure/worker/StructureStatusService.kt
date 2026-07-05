@@ -14,10 +14,10 @@ import modeep.modev.domain.structure.worker.event.DependencyInfos
 import modeep.modev.domain.structure.worker.event.FieldInfos
 import modeep.modev.domain.structure.worker.event.GenerateStructureEvent
 import modeep.modev.domain.structure.worker.event.StackInfos
+import modeep.modev.domain.structure.worker.result.StartGenerationResult
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.ProjectErrorCode
 import modeep.modev.global.util.LanguageDetector.detect
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -29,7 +29,6 @@ class StructureStatusService(
     private val fieldRepository: FieldRepository,
     private val techStackRepository: TechStackRepository,
     private val dependencyRepository: DependencyRepository,
-    private val eventPublisher: ApplicationEventPublisher,
 ) {
     // 비동기 처리 시 Transaction 풀이 너무 오랫동안 열려있는 것을 방지하기 위해 다른 컴포넌트에서 트랜잭션 처리
     @Transactional
@@ -59,42 +58,50 @@ class StructureStatusService(
         structureFileRepository.save(structureFile)
     }
 
+    // project status 검증 및 StartGenerationResult 반환
+    // PENDING의 상태는 GENERATING로 변경해 같은 요청이 2번 들어오는 것을 방지
     @Transactional
-    fun publishGenerating(projectId: UUID) {
+    fun startGeneratingIfPending(projectId: UUID): StartGenerationResult {
         val project =
             projectRepository
                 .findByIdAndDeletedAtIsNullForUpdate(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
 
-        // 상태가 PENDING(생성 요청을 한 상태인지)인지 검증
-        if (project.status != ProjectStatus.PENDING) {
-            throw BusinessException(ProjectErrorCode.PROJECT_STRUCTURE_NOT_PENDING)
+        when (project.status) {
+            ProjectStatus.NOT_CREATED -> throw BusinessException(ProjectErrorCode.PROJECT_STRUCTURE_NOT_PENDING)
+            ProjectStatus.GENERATING,
+            ProjectStatus.COMPLETED,
+            ProjectStatus.FAILED,
+            -> return StartGenerationResult(status = project.status)
+            ProjectStatus.PENDING -> {
+                // GENERATING 상태로 변경하여 같은 요청이 2번 들어와 이벤트를 2번 발행하는 것을 방지
+                project.status = ProjectStatus.GENERATING
+            }
         }
-
-        // GENERATING 상태로 변경하여 같은 요청이 2번 들어와 이벤트를 2번 발행하는 것 방지
-        project.status = ProjectStatus.GENERATING
 
         val fields = fieldRepository.findByProjectId(projectId)
         val techStacks = techStackRepository.findByProjectId(projectId)
         val dependencies = dependencyRepository.findByProjectId(projectId)
 
-        eventPublisher.publishEvent(
-            GenerateStructureEvent(
-                projectId = projectId,
-                projectName = project.projectName,
-                fields =
-                    fields.map {
-                        FieldInfos.from(it)
-                    },
-                techStacks =
-                    techStacks.map {
-                        StackInfos.from(it)
-                    },
-                dependencies =
-                    dependencies.map {
-                        DependencyInfos.from(it, it.techStack)
-                    },
-            ),
+        return StartGenerationResult(
+            status = ProjectStatus.GENERATING,
+            event =
+                GenerateStructureEvent(
+                    projectId = projectId,
+                    projectName = project.projectName,
+                    fields =
+                        fields.map {
+                            FieldInfos.from(it)
+                        },
+                    techStacks =
+                        techStacks.map {
+                            StackInfos.from(it)
+                        },
+                    dependencies =
+                        dependencies.map {
+                            DependencyInfos.from(it, it.techStack)
+                        },
+                ),
         )
     }
 
