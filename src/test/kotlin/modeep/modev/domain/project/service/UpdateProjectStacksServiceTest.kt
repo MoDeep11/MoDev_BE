@@ -26,6 +26,7 @@ import java.util.UUID
 import kotlin.test.assertEquals
 
 class UpdateProjectStacksServiceTest {
+    private val userId = 1L
     private lateinit var projectRepository: ProjectRepository
     private lateinit var fieldRepository: FieldRepository
     private lateinit var techStackRepository: TechStackRepository
@@ -104,7 +105,7 @@ class UpdateProjectStacksServiceTest {
             )
 
         `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId))
-            .thenReturn(Project(id = projectId, projectName = "project"))
+            .thenReturn(Project(id = projectId, userId = userId, projectName = "project"))
         `when`(fieldRepository.findByPublicIdIn(request.fieldIds)).thenReturn(listOf(frontend, backend))
         `when`(techStackRepository.findByPublicIdIn(request.stackIds)).thenReturn(listOf(spring, react, redis))
         `when`(dependencyRepository.findByPublicIdIn(request.dependencyIds)).thenReturn(listOf(security, jpa))
@@ -118,7 +119,7 @@ class UpdateProjectStacksServiceTest {
         `when`(generateStructureService.execute(GenerateStructureRequest(projectId)))
             .thenReturn(GenerateStructureResponse(projectId, "PENDING"))
 
-        val response = service.execute(projectId, request)
+        val response = service.execute(projectId, userId, request)
 
         assertEquals(projectId, response.projectId)
         assertEquals("PENDING", response.status)

@@ -17,6 +17,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class DeleteProjectServiceTest {
+    private val userId = 1L
     private lateinit var projectRepository: ProjectRepository
     private lateinit var service: DeleteProjectService
 
@@ -29,12 +30,12 @@ class DeleteProjectServiceTest {
     @Test
     fun `marks project as deleted and returns hard delete schedule`() {
         val projectId = UUID.randomUUID()
-        val project = Project(id = projectId, projectName = "project")
+        val project = Project(id = projectId, userId = userId, projectName = "project")
         val before = Instant.now()
 
         `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId)).thenReturn(project)
 
-        val response = service.deleteProject(projectId)
+        val response = service.deleteProject(projectId, userId)
 
         val after = Instant.now()
         val deletedAt = assertNotNull(project.deletedAt)
@@ -53,7 +54,7 @@ class DeleteProjectServiceTest {
 
         val exception =
             assertFailsWith<BusinessException> {
-                service.deleteProject(projectId)
+                service.deleteProject(projectId, userId)
             }
 
         assertEquals(ProjectErrorCode.PROJECT_NOT_FOUND, exception.errorCode)
