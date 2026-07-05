@@ -81,7 +81,7 @@ class StructureStatusService(
 
         val fields = fieldRepository.findByProjectId(projectId)
         val techStacks = techStackRepository.findByProjectId(projectId)
-        val dependencies = dependencyRepository.findByProjectId(projectId)
+        val dependencies = dependencyRepository.findByProjectIdWithTechStack(projectId)
 
         return StartGenerationResult(
             status = ProjectStatus.GENERATING,

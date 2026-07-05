@@ -41,7 +41,7 @@ class StructureStatusServiceTest {
         `when`(projectRepository.findByIdAndDeletedAtIsNullForUpdate(projectId)).thenReturn(project)
         `when`(fieldRepository.findByProjectId(projectId)).thenReturn(emptyList())
         `when`(techStackRepository.findByProjectId(projectId)).thenReturn(emptyList())
-        `when`(dependencyRepository.findByProjectId(projectId)).thenReturn(emptyList())
+        `when`(dependencyRepository.findByProjectIdWithTechStack(projectId)).thenReturn(emptyList())
 
         val result = service.startGeneratingIfPending(projectId)
 
