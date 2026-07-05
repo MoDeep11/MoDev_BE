@@ -12,8 +12,10 @@ import modeep.modev.domain.project.controller.dto.request.SaveProjectRequest
 import modeep.modev.domain.project.controller.dto.request.UpdateProjectMetadataRequest
 import modeep.modev.domain.project.controller.dto.request.UpdateProjectStacksRequest
 import modeep.modev.global.response.ApiResponse
+import modeep.modev.global.security.jwt.JwtPrincipal
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -37,6 +39,7 @@ interface ProjectControllerDocs {
         ],
     )
     fun getProjects(
+        @AuthenticationPrincipal user: JwtPrincipal,
         @Parameter(description = "페이지 번호", example = "1")
         @RequestParam(name = "page", defaultValue = "1") page: Int,
         @Parameter(description = "페이지 크기", example = "20")
@@ -80,6 +83,7 @@ interface ProjectControllerDocs {
         ],
     )
     fun saveProject(
+        @AuthenticationPrincipal user: JwtPrincipal?,
         @Valid @RequestBody request: SaveProjectRequest,
     ): ResponseEntity<ApiResponse>
 
@@ -95,6 +99,7 @@ interface ProjectControllerDocs {
         ],
     )
     fun getProjectDetail(
+        @AuthenticationPrincipal user: JwtPrincipal,
         @Parameter(description = "프로젝트 식별자", example = "550e8400-e29b-41d4-a716-446655440000")
         @PathVariable projectId: UUID,
     ): ResponseEntity<ApiResponse>
@@ -112,6 +117,7 @@ interface ProjectControllerDocs {
         ],
     )
     fun updateProjectMetadata(
+        @AuthenticationPrincipal user: JwtPrincipal,
         @Parameter(description = "프로젝트 식별자", example = "550e8400-e29b-41d4-a716-446655440000")
         @PathVariable projectId: UUID,
         @Valid @RequestBody request: UpdateProjectMetadataRequest,
@@ -158,6 +164,7 @@ interface ProjectControllerDocs {
         ],
     )
     fun updateProjectStacks(
+        @AuthenticationPrincipal user: JwtPrincipal,
         @Parameter(description = "프로젝트 식별자", example = "550e8400-e29b-41d4-a716-446655440000")
         @PathVariable projectId: UUID,
         @Valid @RequestBody request: UpdateProjectStacksRequest,
@@ -209,6 +216,7 @@ interface ProjectControllerDocs {
         ],
     )
     fun issueDownloadUrl(
+        @AuthenticationPrincipal user: JwtPrincipal,
         @Parameter(description = "프로젝트 식별자", example = "550e8400-e29b-41d4-a716-446655440000")
         @PathVariable projectId: UUID,
     ): ResponseEntity<ApiResponse>
@@ -225,6 +233,7 @@ interface ProjectControllerDocs {
         ],
     )
     fun deleteProject(
+        @AuthenticationPrincipal user: JwtPrincipal,
         @Parameter(description = "프로젝트 식별자", example = "550e8400-e29b-41d4-a716-446655440000")
         @PathVariable projectId: UUID,
     ): ResponseEntity<ApiResponse>

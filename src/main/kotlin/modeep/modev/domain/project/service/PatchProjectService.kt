@@ -2,6 +2,7 @@ package modeep.modev.domain.project.service
 
 import modeep.modev.domain.project.controller.dto.request.UpdateProjectMetadataRequest
 import modeep.modev.domain.project.controller.dto.response.UpdateProjectMetadataResponse
+import modeep.modev.domain.project.entity.validateOwner
 import modeep.modev.domain.project.repository.ProjectRepository
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.ProjectErrorCode
@@ -16,12 +17,14 @@ class PatchProjectService(
     @Transactional
     fun updateProjectMetadata(
         projectId: UUID,
+        userId: Long,
         request: UpdateProjectMetadataRequest,
     ): UpdateProjectMetadataResponse {
         val project =
             projectRepository
                 .findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
+        project.validateOwner(userId)
 
         project.updateMetadata(
             projectName = request.projectName,

@@ -11,6 +11,7 @@ import modeep.modev.domain.project.entity.ProjectTechStack
 import modeep.modev.domain.project.entity.id.ProjectDependencyId
 import modeep.modev.domain.project.entity.id.ProjectFieldId
 import modeep.modev.domain.project.entity.id.ProjectTechStackId
+import modeep.modev.domain.project.entity.validateOwner
 import modeep.modev.domain.project.repository.ProjectDependencyRepository
 import modeep.modev.domain.project.repository.ProjectFieldRepository
 import modeep.modev.domain.project.repository.ProjectRepository
@@ -40,10 +41,13 @@ class UpdateProjectStacksService(
     @Transactional
     fun execute(
         projectId: UUID,
+        userId: Long,
         request: UpdateProjectStacksRequest,
     ): UpdateProjectStacksResponse {
-        projectRepository.findByIdAndDeletedAtIsNull(projectId)
-            ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
+        val project =
+            projectRepository.findByIdAndDeletedAtIsNull(projectId)
+                ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
+        project.validateOwner(userId)
 
         val fieldIds = request.fieldIds.distinct()
         val stackIds = request.stackIds.distinct()

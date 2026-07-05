@@ -9,6 +9,7 @@ import modeep.modev.domain.project.controller.dto.response.PaginationResponse
 import modeep.modev.domain.project.controller.dto.response.ProjectDependencyResponse
 import modeep.modev.domain.project.controller.dto.response.ProjectStackResponse
 import modeep.modev.domain.project.controller.dto.response.ProjectSummaryResponse
+import modeep.modev.domain.project.entity.validateOwner
 import modeep.modev.domain.project.repository.ProjectRepository
 import modeep.modev.domain.structure.service.GetStructureStatusService
 import modeep.modev.global.exception.BusinessException
@@ -28,11 +29,16 @@ class GetProjectService(
     private val getStructureStatusService: GetStructureStatusService,
 ) {
     @Transactional(readOnly = true)
-    fun getProjectDetail(projectId: UUID): GetProjectDetailResponse {
+    fun getProjectDetail(
+        projectId: UUID,
+        userId: Long,
+    ): GetProjectDetailResponse {
         val project =
             projectRepository
                 .findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
+        project.validateOwner(userId)
+
         val fields = fieldRepository.findByProjectId(projectId)
         val stacks = techStackRepository.findByProjectId(projectId)
         val dependencies = dependencyRepository.findByProjectId(projectId)
@@ -71,6 +77,7 @@ class GetProjectService(
         page: Int,
         size: Int,
         keyword: String?,
+        userId: Long,
     ): GetProjectsResponse {
         val currentPage = page.coerceAtLeast(1)
         val pageSize = size.coerceAtLeast(1).coerceAtMost(100)
@@ -79,10 +86,16 @@ class GetProjectService(
 
         val projects =
             if (normalizedKeyword.isBlank()) {
-                projectRepository.findByDeletedAtIsNull(pageable)
+                projectRepository.findByUserIdAndDeletedAtIsNull(userId, pageable)
             } else {
-                projectRepository.findByProjectNameContainingIgnoreCaseAndDeletedAtIsNull(normalizedKeyword, pageable)
+                projectRepository.findByUserIdAndProjectNameContainingIgnoreCaseAndDeletedAtIsNull(
+                    userId,
+                    normalizedKeyword,
+                    pageable,
+                )
             }
+        projects.content.forEach { it.validateOwner(userId) }
+
         val projectIds = projects.content.map { requireNotNull(it.id) }
         val stacksByProjectId =
             if (projectIds.isEmpty()) {

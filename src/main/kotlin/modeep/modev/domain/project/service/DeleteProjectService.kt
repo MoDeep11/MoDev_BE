@@ -1,6 +1,7 @@
 package modeep.modev.domain.project.service
 
 import modeep.modev.domain.project.controller.dto.response.DeleteProjectResponse
+import modeep.modev.domain.project.entity.validateOwner
 import modeep.modev.domain.project.repository.ProjectRepository
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.ProjectErrorCode
@@ -15,11 +16,15 @@ class DeleteProjectService(
     private val projectRepository: ProjectRepository,
 ) {
     @Transactional
-    fun deleteProject(projectId: UUID): DeleteProjectResponse {
+    fun deleteProject(
+        projectId: UUID,
+        userId: Long,
+    ): DeleteProjectResponse {
         val project =
             projectRepository
                 .findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
+        project.validateOwner(userId)
 
         val deletedAt = Instant.now()
         val hardDeleteScheduledAt = deletedAt.plus(30, ChronoUnit.DAYS)

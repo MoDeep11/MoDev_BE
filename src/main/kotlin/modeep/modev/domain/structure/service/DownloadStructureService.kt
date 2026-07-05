@@ -2,6 +2,7 @@ package modeep.modev.domain.structure.service
 
 import modeep.modev.domain.project.entity.Project
 import modeep.modev.domain.project.entity.ProjectStatus
+import modeep.modev.domain.project.entity.validateOwner
 import modeep.modev.domain.project.repository.ProjectRepository
 import modeep.modev.domain.structure.controller.dto.response.DownloadStructureResponse
 import modeep.modev.domain.structure.entity.vo.StructureFileType
@@ -26,8 +27,12 @@ class DownloadStructureService(
     private val zipArchiveService: ZipArchiveService,
     private val s3StorageService: S3StorageService,
 ) {
-    fun issueDownloadUrl(projectId: UUID): DownloadStructureResponse {
+    fun issueDownloadUrl(
+        projectId: UUID,
+        userId: Long? = null,
+    ): DownloadStructureResponse {
         val project = findByProjectId(projectId)
+        userId?.let(project::validateOwner)
 
         val expiration = Duration.ofHours(1)
         val expiresAt = OffsetDateTime.now(ZoneOffset.UTC).plus(expiration)
