@@ -3,7 +3,7 @@ package modeep.modev.global.security.jwt
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import modeep.modev.global.exception.error.AuthErrorCode
+import modeep.modev.global.exception.error.GlobalErrorCode
 import modeep.modev.global.response.ApiResponse
 import modeep.modev.global.response.ErrorResponse
 import org.springframework.http.MediaType
@@ -32,7 +32,7 @@ class JwtAuthenticationEntryPoint(
     }
 
     private fun writeUnauthorized(response: HttpServletResponse) {
-        val errorCode = AuthErrorCode.INVALID_CREDENTIALS
+        val errorCode = GlobalErrorCode.UNAUTHORIZED
 
         response.status = errorCode.status.value()
         response.contentType = MediaType.APPLICATION_JSON_VALUE

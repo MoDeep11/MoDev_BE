@@ -44,6 +44,7 @@ class GlobalExceptionHandler(
         return errorResponse(errorCode)
     }
 
+    // 검증 실패 등 질못된 요청
     @ExceptionHandler(
         MethodArgumentNotValidException::class,
         BindException::class,
@@ -63,6 +64,7 @@ class GlobalExceptionHandler(
         return errorResponse(GlobalErrorCode.VALIDATION_ERROR)
     }
 
+    // 리소스를 찾을 수 없음
     @ExceptionHandler(
         NoHandlerFoundException::class,
         NoResourceFoundException::class,
@@ -76,6 +78,7 @@ class GlobalExceptionHandler(
         return errorResponse(GlobalErrorCode.NOT_FOUND)
     }
 
+    // 지원하지 않는 HTTP Method
     @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
     fun handleMethodNotAllowed(
         e: HttpRequestMethodNotSupportedException,
@@ -86,6 +89,7 @@ class GlobalExceptionHandler(
         return errorResponse(GlobalErrorCode.METHOD_NOT_ALLOWED)
     }
 
+    // 지정한 형식으로 응답할 수 없음
     @ExceptionHandler(HttpMediaTypeNotAcceptableException::class)
     fun handleNotAcceptable(
         e: HttpMediaTypeNotAcceptableException,
@@ -96,6 +100,7 @@ class GlobalExceptionHandler(
         return errorResponse(GlobalErrorCode.NOT_ACCEPTABLE)
     }
 
+    // 지원하지 않는 Content-Type
     @ExceptionHandler(HttpMediaTypeNotSupportedException::class)
     fun handleUnsupportedMediaType(
         e: HttpMediaTypeNotSupportedException,
@@ -106,6 +111,7 @@ class GlobalExceptionHandler(
         return errorResponse(GlobalErrorCode.UNSUPPORTED_MEDIA_TYPE)
     }
 
+    // 예기치 못한 에러
     @ExceptionHandler(Exception::class)
     fun handleException(
         e: Exception,
