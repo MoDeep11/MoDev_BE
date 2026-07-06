@@ -4,6 +4,7 @@ enum class StreamStructureEvent(
     val eventName: String,
 ) {
     CONNECTED("connected"),
+    STATUS("status"),
     HEARTBEAT("heartbeat"),
     PROGRESS("progress"),
     FILE_CREATED("file_created"),

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import modeep.modev.global.response.ApiResponse
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestParam
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
 
@@ -28,7 +29,7 @@ interface CatalogControllerDocs {
             ),
         ],
     )
-    fun getFields(): ApiResponse
+    fun getFields(): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "기술 스택 목록 조회",
@@ -69,7 +70,7 @@ interface CatalogControllerDocs {
         @RequestParam fieldIds: String?,
         @Parameter(description = "스택명 검색 키워드", example = "spring")
         @RequestParam(required = false) keyword: String?,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "의존성 목록 조회",
@@ -91,5 +92,5 @@ interface CatalogControllerDocs {
         @RequestParam stackIds: String?,
         @Parameter(description = "의존성명 검색 키워드", example = "security")
         @RequestParam(required = false) keyword: String?,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 }

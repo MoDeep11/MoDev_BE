@@ -1,13 +1,12 @@
 package modeep.modev.domain.auth.service
 
-import modeep.modev.domain.auth.controller.dto.response.LoginResponse
-import modeep.modev.domain.auth.controller.dto.response.LoginUserResponse
+import modeep.modev.domain.auth.controller.dto.response.TokenRefreshResponse
+import modeep.modev.domain.auth.repository.RefreshTokenStore
 import modeep.modev.domain.user.entity.UserStatus
 import modeep.modev.domain.user.repository.UserRepository
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.AuthErrorCode
 import modeep.modev.global.security.jwt.JwtTokenProvider
-import modeep.modev.global.security.jwt.RefreshTokenStore
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
@@ -19,10 +18,12 @@ class TokenRefreshService(
     private val refreshTokenStore: RefreshTokenStore,
 ) {
     @Transactional(readOnly = true)
-    fun execute(refreshToken: String): LoginResponse {
-        val email = jwtTokenProvider.parseRefreshToken(refreshToken)
+    fun execute(refreshToken: String): Pair<TokenRefreshResponse, String> {
+        val userId =
+            jwtTokenProvider.parseRefreshToken(refreshToken).toLongOrNull()
+                ?: throw BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID)
         val user =
-            userRepository.findByEmailIgnoreCase(email)
+            userRepository.findUserById(userId)
                 ?: throw BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID)
 
         when (user.status) {
@@ -32,23 +33,25 @@ class TokenRefreshService(
         }
 
         val newRefreshToken = jwtTokenProvider.generateRefreshToken(user)
+
+        // 동시성 방지 및 재사용 방지
         val rotated =
             refreshTokenStore.rotate(
                 currentRefreshToken = refreshToken,
                 newRefreshToken = newRefreshToken,
-                email = user.email,
+                userId = user.id.toString(),
                 ttl = Duration.ofMillis(jwtTokenProvider.refreshTokenExpirationMillis),
             )
         if (!rotated) {
             throw BusinessException(AuthErrorCode.REFRESH_TOKEN_REUSED)
         }
 
-        return LoginResponse(
-            accessToken = jwtTokenProvider.generateAccessToken(user),
-            refreshToken = newRefreshToken,
-            expiresIn = jwtTokenProvider.accessTokenExpiresInSeconds,
-            refreshExpiresIn = jwtTokenProvider.refreshTokenExpiresInSeconds,
-            user = LoginUserResponse.from(user),
-        )
+        val response =
+            TokenRefreshResponse(
+                accessToken = jwtTokenProvider.generateAccessToken(user),
+                expiresIn = jwtTokenProvider.accessTokenExpiresInSeconds,
+            )
+
+        return Pair(response, newRefreshToken)
     }
 }

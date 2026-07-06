@@ -2,27 +2,27 @@ package modeep.modev.domain.auth.controller
 
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
-import modeep.modev.domain.auth.controller.dto.request.EmailVerificationSendRequest
 import modeep.modev.domain.auth.controller.dto.request.LoginRequest
+import modeep.modev.domain.auth.controller.dto.request.SendEmailRequest
 import modeep.modev.domain.auth.controller.dto.request.SignupRequest
-import modeep.modev.domain.auth.controller.dto.request.VerifyCode
-import modeep.modev.domain.auth.controller.dto.response.LoginResponse
-import modeep.modev.domain.auth.service.EmailVerificationService
+import modeep.modev.domain.auth.controller.dto.request.VerifyEmailResponse
+import modeep.modev.domain.auth.service.CookieService
+import modeep.modev.domain.auth.service.CookieService.Companion.REFRESH_TOKEN_COOKIE
 import modeep.modev.domain.auth.service.LoginService
 import modeep.modev.domain.auth.service.LogoutService
+import modeep.modev.domain.auth.service.SendEmailService
 import modeep.modev.domain.auth.service.SignupService
 import modeep.modev.domain.auth.service.TokenRefreshService
+import modeep.modev.domain.auth.service.VerifyEmailService
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.AuthErrorCode
 import modeep.modev.global.response.ApiResponse
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseCookie
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -32,28 +32,39 @@ class AuthController(
     private val loginService: LoginService,
     private val logoutService: LogoutService,
     private val tokenRefreshService: TokenRefreshService,
-    private val emailVerificationService: EmailVerificationService,
+    private val sendEmailService: SendEmailService,
+    private val verifyEmailService: VerifyEmailService,
+    private val cookieService: CookieService,
 ) : AuthControllerDocs {
     @PostMapping("/signup")
-    @ResponseStatus(HttpStatus.CREATED)
     override fun signup(
         @Valid @RequestBody request: SignupRequest,
-    ): ApiResponse =
-        ApiResponse(
-            success = true,
-            data = signupService.execute(request),
-        )
+        response: HttpServletResponse,
+    ): ResponseEntity<ApiResponse> {
+        val (loginResponse, token) = signupService.execute(request)
+        cookieService.addRefreshTokenCookie(response, token)
+        return ResponseEntity
+            .status(HttpStatus.CREATED)
+            .body(
+                ApiResponse(
+                    success = true,
+                    data = loginResponse,
+                ),
+            )
+    }
 
     @PostMapping("/login")
     override fun login(
         @Valid @RequestBody request: LoginRequest,
         response: HttpServletResponse,
-    ): ApiResponse {
-        val loginResponse = loginService.execute(request)
-        setRefreshTokenCookie(response, loginResponse)
-        return ApiResponse(
-            success = true,
-            data = loginResponse,
+    ): ResponseEntity<ApiResponse> {
+        val (loginResponse, token) = loginService.execute(request)
+        cookieService.addRefreshTokenCookie(response, token)
+        return ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                data = loginResponse,
+            ),
         )
     }
 
@@ -61,38 +72,45 @@ class AuthController(
     override fun refreshToken(
         @CookieValue(name = REFRESH_TOKEN_COOKIE, defaultValue = "") refreshToken: String,
         response: HttpServletResponse,
-    ): ApiResponse {
+    ): ResponseEntity<ApiResponse> {
         if (refreshToken.isBlank()) {
             throw BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID)
         }
 
-        val loginResponse = tokenRefreshService.execute(refreshToken)
-        setRefreshTokenCookie(response, loginResponse)
-        return ApiResponse(
-            success = true,
-            data = loginResponse,
+        val (tokenResponse, token) = tokenRefreshService.execute(refreshToken)
+        cookieService.addRefreshTokenCookie(response, token)
+        return ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                data = tokenResponse,
+            ),
         )
     }
 
     @PostMapping("/email/send")
     override fun sendVerificationCode(
-        @Valid @RequestBody request: EmailVerificationSendRequest,
-    ): ApiResponse {
-        emailVerificationService.sendVerificationCode(request)
-        return ApiResponse(
-            success = true,
-            data = null,
+        @Valid @RequestBody request: SendEmailRequest,
+    ): ResponseEntity<ApiResponse> {
+        sendEmailService.execute(request)
+        return ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                data = null,
+            ),
         )
     }
 
     @PostMapping("/email/verify")
     override fun verifyAuthCode(
-        @Valid @RequestBody request: VerifyCode,
-    ): ApiResponse {
-        return ApiResponse(
-            success = true,
-            data = emailVerificationService.checkAuthCode(request),
-            error = null,
+        @Valid @RequestBody request: VerifyEmailResponse,
+    ): ResponseEntity<ApiResponse> {
+        verifyEmailService.execute(request)
+        return ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                data = null,
+                error = null,
+            ),
         )
     }
 
@@ -100,51 +118,18 @@ class AuthController(
     override fun logout(
         @CookieValue(name = REFRESH_TOKEN_COOKIE, defaultValue = "") refreshToken: String,
         response: HttpServletResponse,
-    ): ApiResponse {
-        logoutService.execute(refreshToken)
-        clearRefreshTokenCookies(response)
-
-        return ApiResponse(
-            success = true,
-            data = null,
-        )
-    }
-
-    private fun setRefreshTokenCookie(
-        response: HttpServletResponse,
-        loginResponse: LoginResponse,
-    ) {
-        val cookie =
-            ResponseCookie
-                .from(REFRESH_TOKEN_COOKIE, loginResponse.refreshToken)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Strict")
-                .path(REFRESH_TOKEN_COOKIE_PATH)
-                .build()
-
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString())
-    }
-
-    private fun clearRefreshTokenCookies(response: HttpServletResponse) {
-        listOf(REFRESH_TOKEN_COOKIE_PATH, LEGACY_REFRESH_TOKEN_COOKIE_PATH).forEach { path ->
-            val cookie =
-                ResponseCookie
-                    .from(REFRESH_TOKEN_COOKIE, "")
-                    .httpOnly(true)
-                    .secure(true)
-                    .sameSite("Strict")
-                    .path(path)
-                    .maxAge(0)
-                    .build()
-
-            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString())
+    ): ResponseEntity<ApiResponse> {
+        try {
+            logoutService.execute(refreshToken)
+        } finally {
+            cookieService.clearRefreshTokenCookie(response)
         }
-    }
 
-    private companion object {
-        const val REFRESH_TOKEN_COOKIE = "refreshToken"
-        const val REFRESH_TOKEN_COOKIE_PATH = "/auth"
-        const val LEGACY_REFRESH_TOKEN_COOKIE_PATH = "/auth/token/refresh"
+        return ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                data = null,
+            ),
+        )
     }
 }

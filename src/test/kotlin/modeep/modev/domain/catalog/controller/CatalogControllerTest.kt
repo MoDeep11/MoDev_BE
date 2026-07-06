@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.springframework.http.HttpStatus
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
@@ -43,10 +44,12 @@ class CatalogControllerTest {
             )
 
         val response = controller.getFields()
+        val body = requireNotNull(response.body)
 
-        assertTrue(response.success)
-        assertNull(response.error)
-        assertIs<Any>(response.data)
+        assertEquals(HttpStatus.OK, response.statusCode)
+        assertTrue(body.success)
+        assertNull(body.error)
+        assertIs<Any>(body.data)
     }
 
     @Test
@@ -55,10 +58,12 @@ class CatalogControllerTest {
             .thenReturn(emptyList())
 
         val response = controller.getTechStacks(fieldIds = "field_be, field_fe", keyword = null)
+        val body = requireNotNull(response.body)
 
         verify(techStackRepository).findStacksByFieldPublicIds(setOf("field_be", "field_fe"))
-        assertTrue(response.success)
-        assertNull(response.error)
+        assertEquals(HttpStatus.OK, response.statusCode)
+        assertTrue(body.success)
+        assertNull(body.error)
     }
 
     @Test
@@ -71,14 +76,16 @@ class CatalogControllerTest {
         ).thenReturn(emptyList())
 
         val response = controller.getDependencies(stackIds = "stack_spring, stack_react", keyword = " security ")
+        val body = requireNotNull(response.body)
 
         verify(dependencyRepository)
             .findByTechStackPublicIdInAndNameContainingIgnoreCaseOrderByIdAsc(
                 listOf("stack_spring", "stack_react"),
                 "security",
             )
-        assertTrue(response.success)
-        assertNull(response.error)
+        assertEquals(HttpStatus.OK, response.statusCode)
+        assertTrue(body.success)
+        assertNull(body.error)
     }
 
     @Test

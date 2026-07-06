@@ -30,4 +30,11 @@ class User(
     fun verifyEmail() {
         status = UserStatus.ACTIVE
     }
+
+    companion object {
+        fun create(
+            email: String,
+            passwordHash: String,
+        ) = User(email = email, passwordHash = passwordHash)
+    }
 }

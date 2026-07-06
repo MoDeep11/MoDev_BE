@@ -33,7 +33,10 @@ class PostProjectService(
     private val projectDependencyRepository: ProjectDependencyRepository,
 ) {
     @Transactional
-    fun saveProject(request: SaveProjectRequest): SaveProjectResponse {
+    fun saveProject(
+        request: SaveProjectRequest,
+        userId: Long?,
+    ): SaveProjectResponse {
         val fields = fieldRepository.findByPublicIdIn(request.fieldIds.distinct())
         val stacks = techStackRepository.findByPublicIdIn(request.stackIds.distinct())
         val dependencies = dependencyRepository.findByPublicIdIn(request.dependencyIds.distinct())
@@ -45,6 +48,7 @@ class PostProjectService(
                 Project(
                     projectName = request.projectName,
                     description = request.description.normalizeDescription(),
+                    userId = userId,
                 ),
             )
         val projectId = requireNotNull(project.id)
@@ -60,6 +64,7 @@ class PostProjectService(
             stacks.map {
                 ProjectTechStack(
                     id = ProjectTechStackId(projectId = projectId, techStackId = requireNotNull(it.id)),
+                    version = it.version,
                 )
             },
         )
@@ -67,6 +72,7 @@ class PostProjectService(
             dependencies.map {
                 ProjectDependency(
                     id = ProjectDependencyId(projectId = projectId, dependencyId = requireNotNull(it.id)),
+                    version = it.version,
                 )
             },
         )

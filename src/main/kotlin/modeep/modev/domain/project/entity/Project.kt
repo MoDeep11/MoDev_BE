@@ -8,6 +8,8 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import modeep.modev.global.common.BaseEntity
+import modeep.modev.global.exception.BusinessException
+import modeep.modev.global.exception.error.ProjectErrorCode
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.annotations.UuidGenerator
 import org.hibernate.type.SqlTypes
@@ -33,7 +35,7 @@ class Project(
     var structure: String? = null,
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    var status: ProjectStatus = ProjectStatus.ACTIVE,
+    var status: ProjectStatus = ProjectStatus.NOT_CREATED,
     @Column(name = "deleted_at")
     var deletedAt: Instant? = null,
 ) : BaseEntity() {
@@ -52,5 +54,11 @@ class Project(
 
     fun delete(deletedAt: Instant) {
         this.deletedAt = deletedAt
+    }
+}
+
+fun Project.validateOwner(userId: Long) {
+    if (this.userId != userId) {
+        throw BusinessException(ProjectErrorCode.PROJECT_FORBIDDEN)
     }
 }

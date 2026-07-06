@@ -102,6 +102,13 @@ catalog:
       timeout-millis: ${CATALOG_REGISTRY_SYNC_TIMEOUT_MILLIS:5000}
       github-token: ${GITHUB_TOKEN:}
 
+project:
+  cleanup:
+    anonymous:
+      cron: ${PROJECT_CLEANUP_ANONYMOUS_CRON:0 0 0 * * *}
+      zone: ${PROJECT_CLEANUP_ANONYMOUS_ZONE:Asia/Seoul}
+      retention-days: ${PROJECT_CLEANUP_ANONYMOUS_RETENTION_DAYS:3}
+
 # Springdoc (비활성화)
 springdoc:
   api-docs:
@@ -111,5 +118,7 @@ springdoc:
 
 # Logging
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{userId:-},%X{clientIp:-},%X{requestUri:-}] %logger{36} - %msg%n"
   level:
     root: INFO

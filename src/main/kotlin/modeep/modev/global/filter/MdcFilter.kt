@@ -18,6 +18,7 @@ class MdcFilter : OncePerRequestFilter() {
         try {
             MDC.put("traceId", UUID.randomUUID().toString())
             MDC.put("clientIp", request.remoteAddr)
+            MDC.put("requestUri", request.requestURI)
             // userId는 security 관련 필터에서 설정
 
             filterChain.doFilter(request, response)
