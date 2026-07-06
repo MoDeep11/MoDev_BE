@@ -4,6 +4,7 @@ import modeep.modev.domain.catalog.registry.service.CatalogRegistrySyncAllServic
 import modeep.modev.domain.catalog.registry.service.CatalogRegistrySyncService
 import modeep.modev.domain.catalog.registry.vo.CatalogRegistryTargetType
 import modeep.modev.global.response.ApiResponse
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -20,26 +21,32 @@ class CatalogRegistryController(
     override fun getVersions(
         @RequestParam targetType: CatalogRegistryTargetType,
         @RequestParam publicId: String,
-    ): ApiResponse =
-        ApiResponse(
-            success = true,
-            data = catalogRegistrySyncService.fetchVersions(targetType, publicId),
+    ): ResponseEntity<ApiResponse> =
+        ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                data = catalogRegistrySyncService.fetchVersions(targetType, publicId),
+            ),
         )
 
     @PostMapping("/sync")
     override fun sync(
         @RequestParam targetType: CatalogRegistryTargetType,
         @RequestParam publicId: String,
-    ): ApiResponse =
-        ApiResponse(
-            success = true,
-            data = catalogRegistrySyncService.sync(targetType, publicId),
+    ): ResponseEntity<ApiResponse> =
+        ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                data = catalogRegistrySyncService.sync(targetType, publicId),
+            ),
         )
 
     @PostMapping("/sync/all")
-    override fun syncAll(): ApiResponse =
-        ApiResponse(
-            success = true,
-            data = catalogRegistrySyncAllService.syncAll(),
+    override fun syncAll(): ResponseEntity<ApiResponse> =
+        ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                data = catalogRegistrySyncAllService.syncAll(),
+            ),
         )
 }

@@ -12,6 +12,8 @@ import modeep.modev.domain.auth.service.VerifyEmailService
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.springframework.http.HttpStatus
+import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -36,11 +38,13 @@ class AuthControllerTest {
         val request = SendEmailRequest("user@example.com")
 
         val response = controller.sendVerificationCode(request)
+        val body = requireNotNull(response.body)
 
         verify(sendEmailService).execute(request)
-        assertTrue(response.success)
-        assertNull(response.data)
-        assertNull(response.error)
+        assertEquals(HttpStatus.OK, response.statusCode)
+        assertTrue(body.success)
+        assertNull(body.data)
+        assertNull(body.error)
     }
 
     @Test
@@ -48,11 +52,13 @@ class AuthControllerTest {
         val servletResponse = mock(HttpServletResponse::class.java)
 
         val response = controller.logout("refresh-token", servletResponse)
+        val body = requireNotNull(response.body)
 
         verify(logoutService).execute("refresh-token")
-        assertTrue(response.success)
-        assertNull(response.data)
-        assertNull(response.error)
+        assertEquals(HttpStatus.OK, response.statusCode)
+        assertTrue(body.success)
+        assertNull(body.data)
+        assertNull(body.error)
         verify(cookieService).clearRefreshTokenCookie(servletResponse)
     }
 }
