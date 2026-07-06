@@ -63,7 +63,7 @@ class StructureController(
     ): ResponseEntity<SseEmitter> {
         response.setHeader("X-Accel-Buffering", "no")
 
-        return ResponseEntity.ok(streamStructureService.connect(projectId.toString()))
+        return ResponseEntity.ok(streamStructureService.connect(projectId))
     }
 
     @GetMapping("/{projectId}/files")

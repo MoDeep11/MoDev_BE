@@ -1,16 +1,16 @@
 package modeep.modev.domain.structure.controller.dto.response
 
+import modeep.modev.domain.project.entity.ProjectStatus
 import modeep.modev.domain.structure.controller.dto.response.vo.StructureFileType
-import modeep.modev.domain.structure.controller.dto.response.vo.StructureProgressStep
 
 data class ConnectedStreamResponse(
     val projectId: String,
     val message: String,
 )
 
-data class ProgressStreamResponse(
-    val step: StructureProgressStep,
-    val message: String,
+data class StatusStreamResponse(
+    val projectId: String,
+    val status: ProjectStatus,
 )
 
 data class FileCreatedStreamResponse(

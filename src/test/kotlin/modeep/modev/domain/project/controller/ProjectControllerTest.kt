@@ -2,6 +2,7 @@ package modeep.modev.domain.project.controller
 
 import modeep.modev.domain.project.controller.dto.request.UpdateProjectStacksRequest
 import modeep.modev.domain.project.controller.dto.response.UpdateProjectStacksResponse
+import modeep.modev.domain.project.entity.ProjectStatus
 import modeep.modev.domain.project.service.DeleteProjectService
 import modeep.modev.domain.project.service.GetProjectService
 import modeep.modev.domain.project.service.PatchProjectService

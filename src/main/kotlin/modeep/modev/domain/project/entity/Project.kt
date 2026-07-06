@@ -35,7 +35,7 @@ class Project(
     var structure: String? = null,
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    var status: ProjectStatus = ProjectStatus.ACTIVE,
+    var status: ProjectStatus = ProjectStatus.NOT_CREATED,
     @Column(name = "deleted_at")
     var deletedAt: Instant? = null,
 ) : BaseEntity() {
