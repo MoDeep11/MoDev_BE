@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import modeep.modev.domain.catalog.registry.vo.CatalogRegistryTargetType
 import modeep.modev.global.response.ApiResponse
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestParam
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
 
@@ -33,7 +34,7 @@ interface CatalogRegistryControllerDocs {
         @RequestParam targetType: CatalogRegistryTargetType,
         @Parameter(description = "카탈로그 publicId", example = "spring-boot-starter-web")
         @RequestParam publicId: String,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "레지스트리 버전 동기화",
@@ -50,7 +51,7 @@ interface CatalogRegistryControllerDocs {
         @RequestParam targetType: CatalogRegistryTargetType,
         @Parameter(description = "카탈로그 publicId", example = "spring-boot-starter-web")
         @RequestParam publicId: String,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "전체 레지스트리 버전 동기화",
@@ -62,5 +63,5 @@ interface CatalogRegistryControllerDocs {
             SwaggerApiResponse(responseCode = "200", description = "전체 동기화 성공"),
         ],
     )
-    fun syncAll(): ApiResponse
+    fun syncAll(): ResponseEntity<ApiResponse>
 }

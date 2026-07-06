@@ -1,6 +1,6 @@
 package modeep.modev.domain.auth.service
 
-import modeep.modev.global.security.jwt.RefreshTokenStore
+import modeep.modev.domain.auth.repository.RefreshTokenStore
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never

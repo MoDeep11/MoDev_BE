@@ -13,7 +13,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository
+import org.springframework.security.web.csrf.CsrfFilter
+import org.springframework.security.web.csrf.CsrfToken
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
+import org.springframework.security.web.util.matcher.OrRequestMatcher
 import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.filter.OncePerRequestFilter
 
 @Configuration
 class SecurityConfig(
@@ -26,8 +33,30 @@ class SecurityConfig(
 ) {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        val csrfTokenRepository =
+            CookieCsrfTokenRepository.withHttpOnlyFalse().apply {
+                setCookieCustomizer {
+                    it
+                        .path("/")
+                        .secure(true)
+                        .sameSite("None")
+                }
+            }
+
         http
-            .csrf { it.disable() }
+            .csrf {
+                it
+                    .csrfTokenRepository(csrfTokenRepository)
+                    .csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
+                    .requireCsrfProtectionMatcher(
+                        OrRequestMatcher(
+                            PathPatternRequestMatcher.withDefaults()
+                                .matcher(HttpMethod.POST, "/auth/token/refresh"),
+                            PathPatternRequestMatcher.withDefaults()
+                                .matcher(HttpMethod.POST, "/auth/logout"),
+                        ),
+                    )
+            }
             .cors {
                 it.configurationSource(corsConfigurationSource)
             }
@@ -67,6 +96,7 @@ class SecurityConfig(
             }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
+            .addFilterAfter(CsrfCookieFilter(), CsrfFilter::class.java)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
             .addFilterAfter(mdcFilter, JwtAuthenticationFilter::class.java)
             .addFilterAfter(rateLimitFilter, MdcFilter::class.java)
@@ -85,4 +115,16 @@ class SecurityConfig(
         FilterRegistrationBean(jwtFilter).apply {
             isEnabled = false
         }
+
+    private class CsrfCookieFilter : OncePerRequestFilter() {
+        override fun doFilterInternal(
+            request: jakarta.servlet.http.HttpServletRequest,
+            response: jakarta.servlet.http.HttpServletResponse,
+            filterChain: jakarta.servlet.FilterChain,
+        ) {
+            val csrfToken = request.getAttribute(CsrfToken::class.java.name) as CsrfToken?
+            csrfToken?.token
+            filterChain.doFilter(request, response)
+        }
+    }
 }

@@ -10,12 +10,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
-import modeep.modev.domain.auth.controller.dto.request.EmailVerificationSendRequest
 import modeep.modev.domain.auth.controller.dto.request.LoginRequest
+import modeep.modev.domain.auth.controller.dto.request.SendEmailRequest
 import modeep.modev.domain.auth.controller.dto.request.SignupRequest
-import modeep.modev.domain.auth.controller.dto.request.VerifyCode
+import modeep.modev.domain.auth.controller.dto.request.VerifyEmailResponse
 import modeep.modev.global.response.ApiResponse
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
@@ -24,7 +25,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
 interface AuthControllerDocs {
     @Operation(
         summary = "회원가입",
-        description = "이메일과 비밀번호로 신규 계정을 생성한다. 생성 직후 이메일 인증이 필요하다.",
+        description = "이메일 인증이 완료된 이메일과 비밀번호로 신규 계정을 생성한다.",
         operationId = "signup",
     )
     @ApiResponses(
@@ -35,12 +36,14 @@ interface AuthControllerDocs {
                 content = [Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = Schema(implementation = ApiResponse::class))],
             ),
             SwaggerApiResponse(responseCode = "400", description = "입력값 유효성 오류"),
+            SwaggerApiResponse(responseCode = "403", description = "이메일 미인증"),
             SwaggerApiResponse(responseCode = "409", description = "이메일 중복"),
         ],
     )
     fun signup(
         @Valid @RequestBody request: SignupRequest,
-    ): ApiResponse
+        @Parameter(hidden = true) response: HttpServletResponse,
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "로그인",
@@ -76,7 +79,7 @@ interface AuthControllerDocs {
                 headers = [
                     Header(
                         name = "Set-Cookie",
-                        description = "refreshToken HttpOnly 쿠키를 설정한다. Path=/auth; Secure; SameSite=Strict",
+                        description = "refresh_token HttpOnly 쿠키를 설정한다. Path=/auth; Secure; SameSite=None",
                         schema = Schema(type = "string"),
                     ),
                 ],
@@ -88,7 +91,7 @@ interface AuthControllerDocs {
     fun login(
         @Valid @RequestBody request: LoginRequest,
         @Parameter(hidden = true) response: HttpServletResponse,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "액세스 토큰 및 리프레시 토큰 재발급",
@@ -103,7 +106,7 @@ interface AuthControllerDocs {
                 headers = [
                     Header(
                         name = "Set-Cookie",
-                        description = "새 refreshToken HttpOnly 쿠키를 설정한다. Path=/auth; Secure; SameSite=Strict",
+                        description = "새 refresh_token HttpOnly 쿠키를 설정한다. Path=/auth; Secure; SameSite=None",
                         schema = Schema(type = "string"),
                     ),
                 ],
@@ -113,9 +116,9 @@ interface AuthControllerDocs {
     )
     fun refreshToken(
         @Parameter(hidden = true)
-        @CookieValue(name = "refreshToken", defaultValue = "") refreshToken: String,
+        @CookieValue(name = "refresh_token", defaultValue = "") refreshToken: String,
         @Parameter(hidden = true) response: HttpServletResponse,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "이메일 인증 코드 발송",
@@ -130,8 +133,8 @@ interface AuthControllerDocs {
         ],
     )
     fun sendVerificationCode(
-        @Valid @RequestBody request: EmailVerificationSendRequest,
-    ): ApiResponse
+        @Valid @RequestBody request: SendEmailRequest,
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "이메일 인증 확인",
@@ -147,8 +150,8 @@ interface AuthControllerDocs {
         ],
     )
     fun verifyAuthCode(
-        @Valid @RequestBody request: VerifyCode,
-    ): ApiResponse
+        @Valid @RequestBody request: VerifyEmailResponse,
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "로그아웃",
@@ -163,7 +166,7 @@ interface AuthControllerDocs {
                 headers = [
                     Header(
                         name = "Set-Cookie",
-                        description = "refreshToken 쿠키를 만료한다. Path=/auth 및 Path=/auth/token/refresh; Max-Age=0",
+                        description = "refresh_token 쿠키를 만료한다. Path=/auth 및 Path=/auth/token/refresh; Max-Age=0",
                         schema = Schema(type = "string"),
                     ),
                 ],
@@ -172,7 +175,7 @@ interface AuthControllerDocs {
     )
     fun logout(
         @Parameter(hidden = true)
-        @CookieValue(name = "refreshToken", defaultValue = "") refreshToken: String,
+        @CookieValue(name = "refresh_token", defaultValue = "") refreshToken: String,
         @Parameter(hidden = true) response: HttpServletResponse,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 }
