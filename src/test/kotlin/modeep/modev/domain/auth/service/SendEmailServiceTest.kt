@@ -49,6 +49,7 @@ class SendEmailServiceTest {
         service.execute(SendEmailRequest(" User@Example.com "))
 
         val codeCaptor = ArgumentCaptor.forClass(String::class.java)
+        verify(redisTemplate).delete("auth:email-verification:verified:user@example.com")
         verify(valueOperations).set(
             eq("auth:email-verification:code:user@example.com"),
             codeCaptor.capture(),

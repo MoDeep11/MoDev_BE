@@ -6,6 +6,7 @@ import modeep.modev.global.exception.error.AuthErrorCode
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Duration
 
 @Service
 class VerifyEmailService(
@@ -24,10 +25,16 @@ class VerifyEmailService(
             throw BusinessException(AuthErrorCode.VERIFY_CODE_INVALID)
         }
 
+        redisTemplate
+            .opsForValue()
+            .set("$VERIFIED_KEY_PREFIX$email", VERIFIED_VALUE, VERIFIED_TTL)
         redisTemplate.delete(codeKey)
     }
 
-    private companion object {
+    companion object {
         const val CODE_KEY_PREFIX = "auth:email-verification:code:"
+        const val VERIFIED_KEY_PREFIX = "auth:email-verification:verified:"
+        const val VERIFIED_VALUE = "true"
+        val VERIFIED_TTL: Duration = Duration.ofMinutes(30)
     }
 }

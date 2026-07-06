@@ -1,6 +1,7 @@
 package modeep.modev.domain.auth.service
 
 import modeep.modev.domain.auth.controller.dto.request.SendEmailRequest
+import modeep.modev.domain.auth.service.VerifyEmailService.Companion.VERIFIED_KEY_PREFIX
 import modeep.modev.global.mail.EmailTemplateRenderer
 import modeep.modev.global.mail.MailMessage
 import modeep.modev.global.mail.MailService
@@ -21,8 +22,10 @@ class SendEmailService(
 
         val code = generateVerificationCode()
         val codeKey = "$CODE_KEY_PREFIX$email"
+        val verifiedKey = "$VERIFIED_KEY_PREFIX$email"
 
         try {
+            redisTemplate.delete(verifiedKey)
             redisTemplate.opsForValue().set(codeKey, code, VERIFY_CODE_TTL)
 
             val body =

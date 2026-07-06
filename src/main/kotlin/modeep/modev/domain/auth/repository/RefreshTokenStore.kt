@@ -13,12 +13,12 @@ class RefreshTokenStore(
 ) {
     fun save(
         refreshToken: String,
-        email: String,
+        userId: String,
         ttl: Duration,
     ) {
         redisTemplate
             .opsForValue()
-            .set(key(refreshToken), email, ttl)
+            .set(key(refreshToken), userId, ttl)
     }
 
     fun rotate(

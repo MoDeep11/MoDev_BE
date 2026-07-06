@@ -10,6 +10,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.ValueOperations
+import java.time.Duration
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -30,7 +31,7 @@ class VerifyEmailServiceTest {
     }
 
     @Test
-    fun `verifies code and deletes saved code`() {
+    fun `verifies code, stores verified marker, and deletes saved code`() {
         `when`(valueOperations.get("auth:email-verification:code:user@example.com")).thenReturn("012345")
 
         service.execute(
@@ -40,6 +41,12 @@ class VerifyEmailServiceTest {
             ),
         )
 
+        verify(valueOperations)
+            .set(
+                "auth:email-verification:verified:user@example.com",
+                "true",
+                Duration.ofMinutes(30),
+            )
         verify(redisTemplate).delete("auth:email-verification:code:user@example.com")
     }
 

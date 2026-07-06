@@ -62,7 +62,7 @@ class LoginServiceTest {
         verify(refreshTokenStore)
             .save(
                 refreshToken = "refresh-token",
-                email = user.email,
+                userId = user.id.toString(),
                 ttl = java.time.Duration.ofMillis(1209600000),
             )
     }

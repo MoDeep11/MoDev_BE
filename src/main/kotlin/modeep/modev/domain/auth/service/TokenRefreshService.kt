@@ -19,9 +19,11 @@ class TokenRefreshService(
 ) {
     @Transactional(readOnly = true)
     fun execute(refreshToken: String): Pair<TokenRefreshResponse, String> {
-        val userId = jwtTokenProvider.parseRefreshToken(refreshToken)
+        val userId =
+            jwtTokenProvider.parseRefreshToken(refreshToken).toLongOrNull()
+                ?: throw BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID)
         val user =
-            userRepository.findByEmailIgnoreCase(userId)
+            userRepository.findUserById(userId)
                 ?: throw BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID)
 
         when (user.status) {

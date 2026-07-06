@@ -34,7 +34,7 @@ class TokenRefreshServiceTest {
     fun `refreshes access token`() {
         val user = activeUser()
         `when`(jwtTokenProvider.parseRefreshToken("refresh-token")).thenReturn(user.id.toString())
-        `when`(userRepository.findByEmailIgnoreCase(user.id.toString())).thenReturn(user)
+        `when`(userRepository.findUserById(user.id)).thenReturn(user)
         `when`(jwtTokenProvider.generateAccessToken(user)).thenReturn("new-access-token")
         `when`(jwtTokenProvider.generateRefreshToken(user)).thenReturn("new-refresh-token")
         `when`(jwtTokenProvider.accessTokenExpiresInSeconds).thenReturn(3600)
@@ -57,8 +57,8 @@ class TokenRefreshServiceTest {
 
     @Test
     fun `rejects refresh token for missing user`() {
-        `when`(jwtTokenProvider.parseRefreshToken("refresh-token")).thenReturn("missing@example.com")
-        `when`(userRepository.findByEmailIgnoreCase("missing@example.com")).thenReturn(null)
+        `when`(jwtTokenProvider.parseRefreshToken("refresh-token")).thenReturn("999")
+        `when`(userRepository.findUserById(999L)).thenReturn(null)
 
         val exception =
             assertFailsWith<BusinessException> {
@@ -69,10 +69,23 @@ class TokenRefreshServiceTest {
     }
 
     @Test
+    fun `rejects refresh token with non numeric subject`() {
+        `when`(jwtTokenProvider.parseRefreshToken("refresh-token")).thenReturn("not-a-user-id")
+
+        val exception =
+            assertFailsWith<BusinessException> {
+                tokenRefreshService.execute("refresh-token")
+            }
+
+        assertEquals(AuthErrorCode.REFRESH_TOKEN_INVALID, exception.errorCode)
+        verify(userRepository, never()).findUserById(org.mockito.ArgumentMatchers.anyLong())
+    }
+
+    @Test
     fun `rejects locked user`() {
         val user = activeUser(status = UserStatus.LOCKED)
         `when`(jwtTokenProvider.parseRefreshToken("refresh-token")).thenReturn(user.id.toString())
-        `when`(userRepository.findByEmailIgnoreCase(user.id.toString())).thenReturn(user)
+        `when`(userRepository.findUserById(user.id)).thenReturn(user)
 
         val exception =
             assertFailsWith<BusinessException> {
@@ -88,7 +101,7 @@ class TokenRefreshServiceTest {
     fun `rejects an already consumed refresh token`() {
         val user = activeUser()
         `when`(jwtTokenProvider.parseRefreshToken("refresh-token")).thenReturn(user.id.toString())
-        `when`(userRepository.findByEmailIgnoreCase(user.id.toString())).thenReturn(user)
+        `when`(userRepository.findUserById(user.id)).thenReturn(user)
         `when`(jwtTokenProvider.generateRefreshToken(user)).thenReturn("new-refresh-token")
         `when`(jwtTokenProvider.refreshTokenExpirationMillis).thenReturn(1209600000)
         `when`(

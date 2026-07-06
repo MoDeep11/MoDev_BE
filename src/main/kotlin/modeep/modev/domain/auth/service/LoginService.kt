@@ -46,7 +46,7 @@ class LoginService(
         val refreshToken = jwtTokenProvider.generateRefreshToken(user)
         refreshTokenStore.save(
             refreshToken = refreshToken,
-            email = user.email,
+            userId = user.id.toString(),
             ttl = Duration.ofMillis(jwtTokenProvider.refreshTokenExpirationMillis),
         )
 
