@@ -25,7 +25,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
 interface AuthControllerDocs {
     @Operation(
         summary = "회원가입",
-        description = "이메일과 비밀번호로 신규 계정을 생성한다. 생성 직후 이메일 인증이 필요하다.",
+        description = "이메일 인증이 완료된 이메일과 비밀번호로 신규 계정을 생성한다.",
         operationId = "signup",
     )
     @ApiResponses(
@@ -36,6 +36,7 @@ interface AuthControllerDocs {
                 content = [Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = Schema(implementation = ApiResponse::class))],
             ),
             SwaggerApiResponse(responseCode = "400", description = "입력값 유효성 오류"),
+            SwaggerApiResponse(responseCode = "403", description = "이메일 미인증"),
             SwaggerApiResponse(responseCode = "409", description = "이메일 중복"),
         ],
     )
@@ -78,7 +79,7 @@ interface AuthControllerDocs {
                 headers = [
                     Header(
                         name = "Set-Cookie",
-                        description = "refreshToken HttpOnly 쿠키를 설정한다. Path=/auth; Secure; SameSite=Strict",
+                        description = "refresh_token HttpOnly 쿠키를 설정한다. Path=/auth; Secure; SameSite=None",
                         schema = Schema(type = "string"),
                     ),
                 ],
@@ -105,7 +106,7 @@ interface AuthControllerDocs {
                 headers = [
                     Header(
                         name = "Set-Cookie",
-                        description = "새 refreshToken HttpOnly 쿠키를 설정한다. Path=/auth; Secure; SameSite=Strict",
+                        description = "새 refresh_token HttpOnly 쿠키를 설정한다. Path=/auth; Secure; SameSite=None",
                         schema = Schema(type = "string"),
                     ),
                 ],
@@ -115,7 +116,7 @@ interface AuthControllerDocs {
     )
     fun refreshToken(
         @Parameter(hidden = true)
-        @CookieValue(name = "refreshToken", defaultValue = "") refreshToken: String,
+        @CookieValue(name = "refresh_token", defaultValue = "") refreshToken: String,
         @Parameter(hidden = true) response: HttpServletResponse,
     ): ResponseEntity<ApiResponse>
 
@@ -165,7 +166,7 @@ interface AuthControllerDocs {
                 headers = [
                     Header(
                         name = "Set-Cookie",
-                        description = "refreshToken 쿠키를 만료한다. Path=/auth 및 Path=/auth/token/refresh; Max-Age=0",
+                        description = "refresh_token 쿠키를 만료한다. Path=/auth 및 Path=/auth/token/refresh; Max-Age=0",
                         schema = Schema(type = "string"),
                     ),
                 ],
@@ -174,7 +175,7 @@ interface AuthControllerDocs {
     )
     fun logout(
         @Parameter(hidden = true)
-        @CookieValue(name = "refreshToken", defaultValue = "") refreshToken: String,
+        @CookieValue(name = "refresh_token", defaultValue = "") refreshToken: String,
         @Parameter(hidden = true) response: HttpServletResponse,
     ): ResponseEntity<ApiResponse>
 }
