@@ -111,5 +111,7 @@ springdoc:
 
 # Logging
 logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{userId:-},%X{clientIp:-},%X{requestUri:-}] %logger{36} - %msg%n"
   level:
     root: INFO
