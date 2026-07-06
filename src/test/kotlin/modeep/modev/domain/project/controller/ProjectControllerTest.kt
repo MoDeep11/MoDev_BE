@@ -10,6 +10,7 @@ import modeep.modev.domain.project.service.PostProjectService
 import modeep.modev.domain.project.service.UpdateProjectStacksService
 import modeep.modev.domain.structure.controller.dto.response.DownloadStructureResponse
 import modeep.modev.domain.structure.service.DownloadStructureService
+import modeep.modev.global.security.jwt.JwtPrincipal
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -22,6 +23,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ProjectControllerTest {
+    private val user = JwtPrincipal(userId = "1", status = "ACTIVE")
+    private val userId = 1L
     private val updateProjectStacksService = mock(UpdateProjectStacksService::class.java)
     private val downloadStructureService = mock(DownloadStructureService::class.java)
     private val controller =
@@ -43,16 +46,16 @@ class ProjectControllerTest {
                 stackIds = listOf("stack_spring", "stack_react", "stack_redis"),
                 dependencyIds = listOf("dep_spring_security", "dep_jpa"),
             )
-        val serviceResponse = UpdateProjectStacksResponse(projectId, ProjectStatus.PENDING)
-        `when`(updateProjectStacksService.execute(projectId, request)).thenReturn(serviceResponse)
+        val serviceResponse = UpdateProjectStacksResponse(projectId, "PENDING")
+        `when`(updateProjectStacksService.execute(projectId, userId, request)).thenReturn(serviceResponse)
 
-        val response = controller.updateProjectStacks(projectId, request)
+        val response = controller.updateProjectStacks(user, projectId, request)
 
         assertEquals(HttpStatus.ACCEPTED, response.statusCode)
         assertTrue(response.body!!.success)
         assertEquals(serviceResponse, response.body!!.data)
         assertNull(response.body!!.error)
-        verify(updateProjectStacksService).execute(projectId, request)
+        verify(updateProjectStacksService).execute(projectId, userId, request)
     }
 
     @Test
@@ -64,14 +67,14 @@ class ProjectControllerTest {
                 expiresAt = OffsetDateTime.parse("2025-05-26T12:00:00Z"),
                 fileName = "my-project_20250526.zip",
             )
-        `when`(downloadStructureService.issueDownloadUrl(projectId)).thenReturn(serviceResponse)
+        `when`(downloadStructureService.issueDownloadUrl(projectId, userId)).thenReturn(serviceResponse)
 
-        val response = controller.issueDownloadUrl(projectId)
+        val response = controller.issueDownloadUrl(user, projectId)
 
         assertEquals(HttpStatus.OK, response.statusCode)
         assertTrue(response.body!!.success)
         assertEquals(serviceResponse, response.body!!.data)
         assertNull(response.body!!.error)
-        verify(downloadStructureService).issueDownloadUrl(projectId)
+        verify(downloadStructureService).issueDownloadUrl(projectId, userId)
     }
 }

@@ -21,7 +21,18 @@ interface ProjectRepository : JpaRepository<Project, UUID> {
 
     fun findByDeletedAtIsNull(pageable: Pageable): Page<Project>
 
+    fun findByUserIdAndDeletedAtIsNull(
+        userId: Long,
+        pageable: Pageable,
+    ): Page<Project>
+
     fun findByProjectNameContainingIgnoreCaseAndDeletedAtIsNull(
+        projectName: String,
+        pageable: Pageable,
+    ): Page<Project>
+
+    fun findByUserIdAndProjectNameContainingIgnoreCaseAndDeletedAtIsNull(
+        userId: Long,
         projectName: String,
         pageable: Pageable,
     ): Page<Project>

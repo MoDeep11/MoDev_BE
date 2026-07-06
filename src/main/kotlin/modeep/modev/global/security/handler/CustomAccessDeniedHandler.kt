@@ -1,4 +1,4 @@
-package modeep.modev.global.security.jwt
+package modeep.modev.global.security.handler
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.http.HttpServletRequest
@@ -7,32 +7,20 @@ import modeep.modev.global.exception.error.GlobalErrorCode
 import modeep.modev.global.response.ApiResponse
 import modeep.modev.global.response.ErrorResponse
 import org.springframework.http.MediaType
-import org.springframework.security.core.AuthenticationException
-import org.springframework.security.web.AuthenticationEntryPoint
+import org.springframework.security.access.AccessDeniedException
+import org.springframework.security.web.access.AccessDeniedHandler
 import org.springframework.stereotype.Component
 
 @Component
-class JwtAuthenticationEntryPoint(
+class CustomAccessDeniedHandler(
     private val objectMapper: ObjectMapper,
-) : AuthenticationEntryPoint {
-    override fun commence(
+) : AccessDeniedHandler {
+    override fun handle(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        authException: AuthenticationException,
+        accessDeniedException: AccessDeniedException,
     ) {
-        writeUnauthorized(response)
-    }
-
-    fun commence(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        exception: Exception,
-    ) {
-        writeUnauthorized(response)
-    }
-
-    private fun writeUnauthorized(response: HttpServletResponse) {
-        val errorCode = GlobalErrorCode.UNAUTHORIZED
+        val errorCode = GlobalErrorCode.FORBIDDEN
 
         response.status = errorCode.status.value()
         response.contentType = MediaType.APPLICATION_JSON_VALUE

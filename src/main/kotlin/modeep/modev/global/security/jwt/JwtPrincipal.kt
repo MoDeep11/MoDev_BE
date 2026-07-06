@@ -1,6 +1,6 @@
 package modeep.modev.global.security.jwt
 
 data class JwtPrincipal(
-    val email: String,
+    val userId: String,
     val status: String,
 )

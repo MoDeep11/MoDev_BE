@@ -54,7 +54,7 @@ class JwtTokenProvider(
         }
 
         return JwtPrincipal(
-            email = claims.subject,
+            userId = claims.subject,
             status =
                 (claims["status"] as? String)
                     ?: throw JwtException("missing or invalid status claim"),
@@ -89,7 +89,7 @@ class JwtTokenProvider(
 
         return Jwts
             .builder()
-            .subject(user.email)
+            .subject(user.id.toString())
             .claim("type", tokenType.value)
             .claim("status", user.status.name)
             .id(UUID.randomUUID().toString())
