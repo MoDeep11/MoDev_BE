@@ -16,4 +16,5 @@ enum class GlobalErrorCode(
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "GLOBAL-006", "Method Not Allowed"),
     NOT_ACCEPTABLE(HttpStatus.NOT_ACCEPTABLE, "GLOBAL-007", "Not Acceptable"),
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "GLOBAL-008", "Unsupported Media Type"),
+    TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "GLOBAL-009", "Too Many Requests"),
 }
