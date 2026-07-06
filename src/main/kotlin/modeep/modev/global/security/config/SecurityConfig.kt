@@ -1,6 +1,7 @@
 package modeep.modev.global.security.config
 
 import modeep.modev.global.filter.MdcFilter
+import modeep.modev.global.ratelimit.RateLimitFilter
 import modeep.modev.global.security.handler.CustomAccessDeniedHandler
 import modeep.modev.global.security.jwt.JwtAuthenticationEntryPoint
 import modeep.modev.global.security.jwt.JwtAuthenticationFilter
@@ -18,6 +19,7 @@ import org.springframework.web.cors.CorsConfigurationSource
 class SecurityConfig(
     private val jwtFilter: JwtAuthenticationFilter,
     private val mdcFilter: MdcFilter,
+    private val rateLimitFilter: RateLimitFilter,
     private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
     private val accessDeniedHandler: CustomAccessDeniedHandler,
     private val corsConfigurationSource: CorsConfigurationSource,
@@ -66,7 +68,8 @@ class SecurityConfig(
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
-            .addFilterBefore(mdcFilter, JwtAuthenticationFilter::class.java)
+            .addFilterAfter(mdcFilter, JwtAuthenticationFilter::class.java)
+            .addFilterAfter(rateLimitFilter, MdcFilter::class.java)
 
         return http.build()
     }

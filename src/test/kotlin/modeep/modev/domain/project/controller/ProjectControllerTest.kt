@@ -46,7 +46,7 @@ class ProjectControllerTest {
                 stackIds = listOf("stack_spring", "stack_react", "stack_redis"),
                 dependencyIds = listOf("dep_spring_security", "dep_jpa"),
             )
-        val serviceResponse = UpdateProjectStacksResponse(projectId, "PENDING")
+        val serviceResponse = UpdateProjectStacksResponse(projectId, ProjectStatus.PENDING)
         `when`(updateProjectStacksService.execute(projectId, userId, request)).thenReturn(serviceResponse)
 
         val response = controller.updateProjectStacks(user, projectId, request)
