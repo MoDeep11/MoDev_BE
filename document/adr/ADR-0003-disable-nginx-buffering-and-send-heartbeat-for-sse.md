@@ -24,7 +24,7 @@ Accepted
 Nginx 설정에서는 SSE 응답이 버퍼링되지 않도록 다음 설정을 적용한다.
 
 ```nginx
-location /api/structures/stream {
+location /projects/structures/{projectId}/stream {
     proxy_pass http://backend;
 
     proxy_buffering off;

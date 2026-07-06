@@ -15,6 +15,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
 class PatchProjectServiceTest {
+    private val userId = 1L
     private lateinit var projectRepository: ProjectRepository
     private lateinit var service: PatchProjectService
 
@@ -27,12 +28,12 @@ class PatchProjectServiceTest {
     @Test
     fun `updates project metadata and trims blank description to null`() {
         val projectId = UUID.randomUUID()
-        val project = Project(id = projectId, projectName = "old project", description = "old description")
+        val project = Project(id = projectId, userId = userId, projectName = "old project", description = "old description")
         val request = UpdateProjectMetadataRequest(projectName = "new project", description = "   ")
 
         `when`(projectRepository.findByIdAndDeletedAtIsNull(projectId)).thenReturn(project)
 
-        val response = service.updateProjectMetadata(projectId, request)
+        val response = service.updateProjectMetadata(projectId, userId, request)
 
         assertEquals(projectId, response.projectId)
         assertEquals("new project", response.projectName)
@@ -50,7 +51,7 @@ class PatchProjectServiceTest {
 
         val exception =
             assertFailsWith<BusinessException> {
-                service.updateProjectMetadata(projectId, request)
+                service.updateProjectMetadata(projectId, userId, request)
             }
 
         assertEquals(ProjectErrorCode.PROJECT_NOT_FOUND, exception.errorCode)

@@ -29,6 +29,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class GetProjectServiceTest {
+    private val userId = 1L
     private lateinit var projectRepository: ProjectRepository
     private lateinit var fieldRepository: FieldRepository
     private lateinit var dependencyRepository: DependencyRepository
@@ -56,7 +57,7 @@ class GetProjectServiceTest {
     @Test
     fun `returns project detail with catalogs and file tree`() {
         val projectId = UUID.randomUUID()
-        val project = Project(id = projectId, projectName = "modev", description = "description")
+        val project = Project(id = projectId, userId = userId, projectName = "modev", description = "description")
         val backend = Field(id = 1L, publicId = "backend", name = "Backend")
         val spring =
             TechStack(
@@ -83,7 +84,7 @@ class GetProjectServiceTest {
         `when`(dependencyRepository.findByProjectId(projectId)).thenReturn(listOf(security))
         `when`(getStructureStatusService.execute(projectId)).thenReturn(fileTree)
 
-        val response = service.getProjectDetail(projectId)
+        val response = service.getProjectDetail(projectId, userId)
 
         assertEquals(projectId, response.projectId)
         assertEquals("modev", response.projectName)
@@ -104,7 +105,7 @@ class GetProjectServiceTest {
 
         val exception =
             assertFailsWith<BusinessException> {
-                service.getProjectDetail(projectId)
+                service.getProjectDetail(projectId, userId)
             }
 
         assertEquals(ProjectErrorCode.PROJECT_NOT_FOUND, exception.errorCode)
@@ -115,13 +116,14 @@ class GetProjectServiceTest {
     fun `returns paged projects using normalized keyword and page bounds`() {
         val firstProjectId = UUID.randomUUID()
         val secondProjectId = UUID.randomUUID()
-        val firstProject = Project(id = firstProjectId, projectName = "modev api", description = "first")
-        val secondProject = Project(id = secondProjectId, projectName = "modev web", description = null)
+        val firstProject = Project(id = firstProjectId, userId = userId, projectName = "modev api", description = "first")
+        val secondProject = Project(id = secondProjectId, userId = userId, projectName = "modev web", description = null)
         val pageable = PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "createdAt"))
         val projects = PageImpl(listOf(firstProject, secondProject), pageable, 2)
 
         `when`(
-            projectRepository.findByProjectNameContainingIgnoreCaseAndDeletedAtIsNull(
+            projectRepository.findByUserIdAndProjectNameContainingIgnoreCaseAndDeletedAtIsNull(
+                userId,
                 "modev",
                 pageable,
             ),
@@ -135,7 +137,7 @@ class GetProjectServiceTest {
                 ),
             )
 
-        val response = service.getProjects(page = 0, size = 200, keyword = "  modev  ")
+        val response = service.getProjects(page = 0, size = 200, keyword = "  modev  ", userId = userId)
 
         assertEquals(1, response.pagination.currentPage)
         assertEquals(100, response.pagination.size)
@@ -143,22 +145,22 @@ class GetProjectServiceTest {
         assertEquals(listOf("Spring Boot", "PostgreSQL"), response.projects[0].stacks)
         assertEquals(listOf("React"), response.projects[1].stacks)
         verify(projectRepository)
-            .findByProjectNameContainingIgnoreCaseAndDeletedAtIsNull("modev", pageable)
+            .findByUserIdAndProjectNameContainingIgnoreCaseAndDeletedAtIsNull(userId, "modev", pageable)
     }
 
     @Test
     fun `returns all active projects when keyword is blank`() {
         val projectId = UUID.randomUUID()
-        val project = Project(id = projectId, projectName = "modev")
+        val project = Project(id = projectId, userId = userId, projectName = "modev")
         val pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))
 
-        `when`(projectRepository.findByDeletedAtIsNull(pageable)).thenReturn(PageImpl(listOf(project), pageable, 1))
+        `when`(projectRepository.findByUserIdAndDeletedAtIsNull(userId, pageable)).thenReturn(PageImpl(listOf(project), pageable, 1))
         `when`(techStackRepository.findByProjectIdIn(listOf(projectId))).thenReturn(emptyList())
 
-        val response = service.getProjects(page = 1, size = 10, keyword = "   ")
+        val response = service.getProjects(page = 1, size = 10, keyword = "   ", userId = userId)
 
         assertEquals(projectId, response.projects.single().projectId)
         assertEquals(emptyList(), response.projects.single().stacks)
-        verify(projectRepository).findByDeletedAtIsNull(pageable)
+        verify(projectRepository).findByUserIdAndDeletedAtIsNull(userId, pageable)
     }
 }

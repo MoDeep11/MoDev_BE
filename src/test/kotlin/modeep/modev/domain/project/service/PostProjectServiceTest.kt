@@ -22,6 +22,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class PostProjectServiceTest {
+    private val userId = 1L
     private lateinit var projectRepository: ProjectRepository
     private lateinit var fieldRepository: FieldRepository
     private lateinit var dependencyRepository: DependencyRepository
@@ -76,7 +77,7 @@ class PostProjectServiceTest {
 
         val exception =
             assertFailsWith<BusinessException> {
-                postProjectService.saveProject(request)
+                postProjectService.saveProject(request, userId)
             }
 
         assertEquals(ProjectErrorCode.INVALID_STACK_COMBINATION, exception.errorCode)

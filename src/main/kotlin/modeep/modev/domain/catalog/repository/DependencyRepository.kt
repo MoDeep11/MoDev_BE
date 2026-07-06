@@ -25,6 +25,19 @@ interface DependencyRepository : JpaRepository<Dependency, Long> {
         @Param("projectId") projectId: UUID,
     ): List<Dependency>
 
+    @Query(
+        """
+        SELECT d FROM Dependency d
+        JOIN FETCH d.techStack
+        JOIN ProjectDependency pd ON pd.id.dependencyId = d.id
+        WHERE pd.id.projectId = :projectId
+        ORDER BY d.id ASC
+        """,
+    )
+    fun findByProjectIdWithTechStack(
+        @Param("projectId") projectId: UUID,
+    ): List<Dependency>
+
     fun findByTechStackPublicIdInOrderByIdAsc(stackIds: Collection<String>): List<Dependency>
 
     fun findByTechStackPublicIdInAndNameContainingIgnoreCaseOrderByIdAsc(
