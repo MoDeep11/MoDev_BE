@@ -39,7 +39,7 @@ class SendEmailService(
 
             mailService.send(
                 MailMessage(
-                    to = request.email,
+                    to = email,
                     subject = MailSubjects.VERIFY_EMAIL,
                     body = body,
                     isHtml = true,

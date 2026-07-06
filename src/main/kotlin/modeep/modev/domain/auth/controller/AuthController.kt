@@ -104,10 +104,11 @@ class AuthController(
     override fun verifyAuthCode(
         @Valid @RequestBody request: VerifyEmailResponse,
     ): ResponseEntity<ApiResponse> {
+        verifyEmailService.execute(request)
         return ResponseEntity.ok(
             ApiResponse(
                 success = true,
-                data = verifyEmailService.execute(request),
+                data = null,
                 error = null,
             ),
         )
@@ -118,8 +119,11 @@ class AuthController(
         @CookieValue(name = REFRESH_TOKEN_COOKIE, defaultValue = "") refreshToken: String,
         response: HttpServletResponse,
     ): ResponseEntity<ApiResponse> {
-        logoutService.execute(refreshToken)
-        cookieService.clearRefreshTokenCookie(response)
+        try {
+            logoutService.execute(refreshToken)
+        } finally {
+            cookieService.clearRefreshTokenCookie(response)
+        }
 
         return ResponseEntity.ok(
             ApiResponse(

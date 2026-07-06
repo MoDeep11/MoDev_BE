@@ -49,8 +49,9 @@ class SignupService(
 
         return try {
             val saved = userRepository.saveAndFlush(user)
+            val response = loginService.buildLoginResponse(saved)
             redisTemplate.delete(verifiedKey)
-            loginService.buildLoginResponse(saved)
+            response
         } catch (exception: DataIntegrityViolationException) {
             throw BusinessException(
                 errorCode = AuthErrorCode.EMAIL_ALREADY_EXISTS,
