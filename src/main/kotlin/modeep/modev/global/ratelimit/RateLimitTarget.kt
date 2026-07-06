@@ -29,19 +29,19 @@ fun HttpServletRequest.resolveRateLimitTarget(): RateLimitTarget? {
                 key = "signup:$clientIp",
             )
 
-        method == "POST" && path == "/auth/code/verify" ->
+        method == "POST" && path == "/auth/email/verify" ->
             RateLimitTarget(
                 policies = listOf(RateLimitPolicy.AUTH),
                 key = "verify-code:$clientIp",
             )
 
-        method == "POST" && path == "/auth/reissue" ->
+        method == "POST" && path == "/auth/token/refresh" ->
             RateLimitTarget(
                 policies = listOf(RateLimitPolicy.TOKEN_REFRESH),
                 key = "token-refresh:$clientIp",
             )
 
-        method == "POST" && path == "/auth/email" ->
+        method == "POST" && path == "/auth/email/send" ->
             RateLimitTarget(
                 policies =
                     listOf(
@@ -57,13 +57,13 @@ fun HttpServletRequest.resolveRateLimitTarget(): RateLimitTarget? {
                 key = "ai-generation:${principalKey(this)}",
             )
 
-        method == "GET" && path.endsWith(".zip") ->
+        method == "POST" && path.isProjectDownloadPath() ->
             RateLimitTarget(
                 policies = listOf(RateLimitPolicy.ZIP_DOWNLOAD),
                 key = "zip-download:${principalKey(this)}",
             )
 
-        shouldIgnore(path) ->
+        shouldIgnore(method, path) ->
             null
 
         else ->
@@ -72,6 +72,10 @@ fun HttpServletRequest.resolveRateLimitTarget(): RateLimitTarget? {
                 key = "general:${principalKey(this)}",
             )
     }
+}
+
+private fun String.isProjectDownloadPath(): Boolean {
+    return PROJECT_DOWNLOAD_PATH.matches(this) || STRUCTURE_DOWNLOAD_PATH.matches(this)
 }
 
 private fun principalKey(request: HttpServletRequest): String {
@@ -83,3 +87,6 @@ private fun principalKey(request: HttpServletRequest): String {
         "ip:${request.clientIp()}"
     }
 }
+
+private val PROJECT_DOWNLOAD_PATH = Regex("^/projects/[^/]+/download$")
+private val STRUCTURE_DOWNLOAD_PATH = Regex("^/projects/structures/[^/]+/download$")
