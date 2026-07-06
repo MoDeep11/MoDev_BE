@@ -16,6 +16,7 @@ import modeep.modev.domain.auth.controller.dto.request.SignupRequest
 import modeep.modev.domain.auth.controller.dto.request.VerifyEmailResponse
 import modeep.modev.global.response.ApiResponse
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
@@ -41,7 +42,7 @@ interface AuthControllerDocs {
     fun signup(
         @Valid @RequestBody request: SignupRequest,
         @Parameter(hidden = true) response: HttpServletResponse,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "로그인",
@@ -89,7 +90,7 @@ interface AuthControllerDocs {
     fun login(
         @Valid @RequestBody request: LoginRequest,
         @Parameter(hidden = true) response: HttpServletResponse,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "액세스 토큰 및 리프레시 토큰 재발급",
@@ -116,7 +117,7 @@ interface AuthControllerDocs {
         @Parameter(hidden = true)
         @CookieValue(name = "refreshToken", defaultValue = "") refreshToken: String,
         @Parameter(hidden = true) response: HttpServletResponse,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "이메일 인증 코드 발송",
@@ -132,7 +133,7 @@ interface AuthControllerDocs {
     )
     fun sendVerificationCode(
         @Valid @RequestBody request: SendEmailRequest,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "이메일 인증 확인",
@@ -149,7 +150,7 @@ interface AuthControllerDocs {
     )
     fun verifyAuthCode(
         @Valid @RequestBody request: VerifyEmailResponse,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 
     @Operation(
         summary = "로그아웃",
@@ -175,5 +176,5 @@ interface AuthControllerDocs {
         @Parameter(hidden = true)
         @CookieValue(name = "refreshToken", defaultValue = "") refreshToken: String,
         @Parameter(hidden = true) response: HttpServletResponse,
-    ): ApiResponse
+    ): ResponseEntity<ApiResponse>
 }
