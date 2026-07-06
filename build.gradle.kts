@@ -79,6 +79,10 @@ dependencies {
     // logging
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.7")
 
+    // bucket4j
+    implementation("com.bucket4j:bucket4j_jdk17-redis-common:8.15.0")
+    implementation("com.bucket4j:bucket4j_jdk17-lettuce:8.15.0")
+
     // devtools
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
