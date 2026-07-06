@@ -28,10 +28,7 @@ class RateLimitFilter(
             return
         }
 
-        val allowed =
-            target.policies.all { policy ->
-                rateLimitService.tryConsume(target.key, policy)
-            }
+        val allowed = rateLimitService.tryConsume(target.key, policies = target.policies)
 
         if (!allowed) {
             val errorCode = GlobalErrorCode.TOO_MANY_REQUESTS
