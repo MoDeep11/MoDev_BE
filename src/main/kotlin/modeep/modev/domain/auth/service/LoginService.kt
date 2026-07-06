@@ -3,12 +3,13 @@ package modeep.modev.domain.auth.service
 import modeep.modev.domain.auth.controller.dto.request.LoginRequest
 import modeep.modev.domain.auth.controller.dto.response.LoginResponse
 import modeep.modev.domain.auth.controller.dto.response.LoginUserResponse
+import modeep.modev.domain.auth.repository.RefreshTokenStore
+import modeep.modev.domain.user.entity.User
 import modeep.modev.domain.user.entity.UserStatus
 import modeep.modev.domain.user.repository.UserRepository
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.AuthErrorCode
 import modeep.modev.global.security.jwt.JwtTokenProvider
-import modeep.modev.global.security.jwt.RefreshTokenStore
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -22,7 +23,7 @@ class LoginService(
     private val refreshTokenStore: RefreshTokenStore,
 ) {
     @Transactional(readOnly = true)
-    fun execute(request: LoginRequest): LoginResponse {
+    fun execute(request: LoginRequest): Pair<LoginResponse, String> {
         val user =
             userRepository.findByEmailIgnoreCase(request.email.trim().lowercase())
                 ?: throw BusinessException(AuthErrorCode.INVALID_CREDENTIALS)
@@ -37,6 +38,11 @@ class LoginService(
             UserStatus.ACTIVE -> Unit
         }
 
+        return buildLoginResponse(user)
+    }
+
+    // LoginResponse와 RefreshToken 쌍을 반환합니다.
+    fun buildLoginResponse(user: User): Pair<LoginResponse, String> {
         val refreshToken = jwtTokenProvider.generateRefreshToken(user)
         refreshTokenStore.save(
             refreshToken = refreshToken,
@@ -44,12 +50,13 @@ class LoginService(
             ttl = Duration.ofMillis(jwtTokenProvider.refreshTokenExpirationMillis),
         )
 
-        return LoginResponse(
-            accessToken = jwtTokenProvider.generateAccessToken(user),
-            refreshToken = refreshToken,
-            expiresIn = jwtTokenProvider.accessTokenExpiresInSeconds,
-            refreshExpiresIn = jwtTokenProvider.refreshTokenExpiresInSeconds,
-            user = LoginUserResponse.from(user),
-        )
+        val response =
+            LoginResponse(
+                accessToken = jwtTokenProvider.generateAccessToken(user),
+                expiresIn = jwtTokenProvider.accessTokenExpiresInSeconds,
+                user = LoginUserResponse.from(user),
+            )
+
+        return Pair(response, refreshToken)
     }
 }

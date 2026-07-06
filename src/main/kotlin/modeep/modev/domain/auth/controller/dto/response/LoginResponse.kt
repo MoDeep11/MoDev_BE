@@ -1,15 +1,10 @@
 package modeep.modev.domain.auth.controller.dto.response
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import modeep.modev.domain.user.entity.User
 
 data class LoginResponse(
     val accessToken: String,
-    @get:JsonIgnore
-    val refreshToken: String,
-    val tokenType: String = "Bearer",
     val expiresIn: Long,
-    val refreshExpiresIn: Long,
     val user: LoginUserResponse,
 )
 

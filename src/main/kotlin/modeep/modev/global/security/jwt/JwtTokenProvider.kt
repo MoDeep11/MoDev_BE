@@ -18,8 +18,8 @@ import java.util.UUID
 @Component
 class JwtTokenProvider(
     @Value("\${jwt.secret}") secret: String,
-    @Value("\${jwt.access-token-expiration:3600000}") private val accessTokenExpiration: Long,
-    @Value("\${jwt.refresh-token-expiration:1209600000}") private val refreshTokenExpiration: Long,
+    @param:Value("\${jwt.access-token-expiration:3600000}") private val accessTokenExpiration: Long,
+    @param:Value("\${jwt.refresh-token-expiration:1209600000}") private val refreshTokenExpiration: Long,
 ) {
     private val signingKey =
         secret

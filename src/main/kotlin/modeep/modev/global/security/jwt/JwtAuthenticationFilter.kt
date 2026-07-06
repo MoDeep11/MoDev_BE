@@ -21,7 +21,7 @@ class JwtAuthenticationFilter(
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
-        val token = resolveToken(request)
+        val token = resolveAccessToken(request)
         if (token == null) {
             filterChain.doFilter(request, response)
             return
@@ -51,7 +51,7 @@ class JwtAuthenticationFilter(
         }
     }
 
-    private fun resolveToken(request: HttpServletRequest): String? {
+    private fun resolveAccessToken(request: HttpServletRequest): String? {
         val authorization = request.getHeader(AUTHORIZATION_HEADER) ?: return null
         if (!authorization.startsWith(BEARER_PREFIX, ignoreCase = true)) {
             return null
@@ -63,5 +63,6 @@ class JwtAuthenticationFilter(
     private companion object {
         const val AUTHORIZATION_HEADER = "Authorization"
         const val BEARER_PREFIX = "Bearer "
+        const val REFRESH_TOKEN_COOKIE = "refresh_token"
     }
 }

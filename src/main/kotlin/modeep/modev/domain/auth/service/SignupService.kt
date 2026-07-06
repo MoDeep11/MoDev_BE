@@ -1,7 +1,7 @@
 package modeep.modev.domain.auth.service
 
 import modeep.modev.domain.auth.controller.dto.request.SignupRequest
-import modeep.modev.domain.auth.controller.dto.response.SignupResponse
+import modeep.modev.domain.auth.controller.dto.response.LoginResponse
 import modeep.modev.domain.user.entity.User
 import modeep.modev.domain.user.entity.UserStatus
 import modeep.modev.domain.user.repository.UserRepository
@@ -16,9 +16,10 @@ import org.springframework.transaction.annotation.Transactional
 class SignupService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
+    private val loginService: LoginService,
 ) {
     @Transactional
-    fun execute(request: SignupRequest): SignupResponse {
+    fun execute(request: SignupRequest): Pair<LoginResponse, String> {
         validatePassword(request.password)
 
         if (request.password != request.passwordConfirm) {
@@ -38,7 +39,8 @@ class SignupService(
             )
 
         return try {
-            SignupResponse.from(userRepository.saveAndFlush(user))
+            val saved = userRepository.saveAndFlush(user)
+            loginService.buildLoginResponse(saved)
         } catch (exception: DataIntegrityViolationException) {
             throw BusinessException(
                 errorCode = AuthErrorCode.EMAIL_ALREADY_EXISTS,

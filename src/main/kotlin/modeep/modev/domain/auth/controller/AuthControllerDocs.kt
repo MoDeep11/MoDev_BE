@@ -10,10 +10,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
-import modeep.modev.domain.auth.controller.dto.request.EmailVerificationSendRequest
 import modeep.modev.domain.auth.controller.dto.request.LoginRequest
+import modeep.modev.domain.auth.controller.dto.request.SendEmailRequest
 import modeep.modev.domain.auth.controller.dto.request.SignupRequest
-import modeep.modev.domain.auth.controller.dto.request.VerifyCode
+import modeep.modev.domain.auth.controller.dto.request.VerifyEmailResponse
 import modeep.modev.global.response.ApiResponse
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.CookieValue
@@ -40,6 +40,7 @@ interface AuthControllerDocs {
     )
     fun signup(
         @Valid @RequestBody request: SignupRequest,
+        @Parameter(hidden = true) response: HttpServletResponse,
     ): ApiResponse
 
     @Operation(
@@ -130,7 +131,7 @@ interface AuthControllerDocs {
         ],
     )
     fun sendVerificationCode(
-        @Valid @RequestBody request: EmailVerificationSendRequest,
+        @Valid @RequestBody request: SendEmailRequest,
     ): ApiResponse
 
     @Operation(
@@ -147,7 +148,7 @@ interface AuthControllerDocs {
         ],
     )
     fun verifyAuthCode(
-        @Valid @RequestBody request: VerifyCode,
+        @Valid @RequestBody request: VerifyEmailResponse,
     ): ApiResponse
 
     @Operation(

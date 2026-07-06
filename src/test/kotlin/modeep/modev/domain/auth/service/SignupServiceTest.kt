@@ -1,10 +1,12 @@
 package modeep.modev.domain.auth.service
 
 import modeep.modev.domain.auth.controller.dto.request.SignupRequest
+import modeep.modev.domain.auth.repository.RefreshTokenStore
 import modeep.modev.domain.user.entity.User
 import modeep.modev.domain.user.repository.UserRepository
 import modeep.modev.global.exception.BusinessException
 import modeep.modev.global.exception.error.AuthErrorCode
+import modeep.modev.global.security.jwt.JwtTokenProvider
 import org.junit.jupiter.api.BeforeEach
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -14,17 +16,29 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class SignupServiceTest {
     private lateinit var userRepository: UserRepository
     private lateinit var passwordEncoder: PasswordEncoder
+    private lateinit var jwtTokenProvider: JwtTokenProvider
+    private lateinit var refreshTokenStore: RefreshTokenStore
+    private lateinit var loginService: LoginService
     private lateinit var signupService: SignupService
 
     @BeforeEach
     fun setUp() {
         userRepository = mock(UserRepository::class.java)
         passwordEncoder = mock(PasswordEncoder::class.java)
-        signupService = SignupService(userRepository, passwordEncoder)
+        jwtTokenProvider =
+            JwtTokenProvider(
+                secret = "01234567890123456789012345678901",
+                accessTokenExpiration = 3600000,
+                refreshTokenExpiration = 1209600000,
+            )
+        refreshTokenStore = mock(RefreshTokenStore::class.java)
+        loginService = LoginService(userRepository, passwordEncoder, jwtTokenProvider, refreshTokenStore)
+        signupService = SignupService(userRepository, passwordEncoder, loginService)
     }
 
     @Test
@@ -40,10 +54,13 @@ class SignupServiceTest {
         `when`(userRepository.saveAndFlush(org.mockito.ArgumentMatchers.any(User::class.java)))
             .thenAnswer { it.arguments[0] as User }
 
-        val response = signupService.execute(request)
+        val (response, refreshToken) = signupService.execute(request)
 
-        assertEquals("user@example.com", response.email)
-        assertEquals("UNVERIFIED", response.status)
+        assertEquals("user@example.com", response.user.email)
+        assertEquals("UNVERIFIED", response.user.status)
+        assertEquals(3600, response.expiresIn)
+        assertTrue(response.accessToken.isNotBlank())
+        assertTrue(refreshToken.isNotBlank())
         verify(passwordEncoder).encode("Password1!")
     }
 

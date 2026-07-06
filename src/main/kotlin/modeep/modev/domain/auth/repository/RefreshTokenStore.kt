@@ -1,4 +1,4 @@
-package modeep.modev.global.security.jwt
+package modeep.modev.domain.auth.repository
 
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.core.script.DefaultRedisScript
@@ -24,14 +24,14 @@ class RefreshTokenStore(
     fun rotate(
         currentRefreshToken: String,
         newRefreshToken: String,
-        email: String,
+        userId: String,
         ttl: Duration,
     ): Boolean {
         val result =
             redisTemplate.execute(
                 ROTATE_SCRIPT,
                 listOf(key(currentRefreshToken), key(newRefreshToken)),
-                email,
+                userId,
                 ttl.toMillis().toString(),
             )
 
