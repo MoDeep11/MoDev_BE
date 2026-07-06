@@ -59,7 +59,7 @@ class SendEmailServiceTest {
         assertTrue(code.matches(Regex("\\d{6}")))
 
         val sentMessage = requireNotNull(mailService.sentMessage)
-        assertEquals(" User@Example.com ", sentMessage.to)
+        assertEquals("user@example.com", sentMessage.to)
         assertEquals(MailSubjects.VERIFY_EMAIL, sentMessage.subject)
         assertTrue(sentMessage.isHtml)
         assertEquals(
