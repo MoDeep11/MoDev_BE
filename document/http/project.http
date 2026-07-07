@@ -1,0 +1,57 @@
+@host = http://127.0.0.1:9999
+@accessToken = jwt.access.token
+@projectId = 550e8400-e29b-41d4-a716-446655440000
+@keyword = spring
+
+### 프로젝트 저장 - 비로그인 허용
+POST {{host}}/projects
+Content-Type: application/json
+
+{
+  "projectName": "HTTP Test Project",
+  "description": "HTTP 파일 기반 API 테스트용 프로젝트",
+  "fieldIds": ["field_backend"],
+  "stackIds": ["stack_spring"],
+  "dependencyIds": ["dep_spring_security", "dep_spring_data_jpa"]
+}
+
+### 프로젝트 목록 조회
+GET {{host}}/projects?page=1&size=20
+Authorization: Bearer {{accessToken}}
+
+### 프로젝트 목록 조회 - 키워드 검색
+GET {{host}}/projects?page=1&size=20&keyword={{keyword}}
+Authorization: Bearer {{accessToken}}
+
+### 프로젝트 상세 조회
+GET {{host}}/projects/{{projectId}}
+Authorization: Bearer {{accessToken}}
+
+### 프로젝트 메타데이터 수정
+PATCH {{host}}/projects/{{projectId}}/metadata
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "projectName": "HTTP Test Project Updated",
+  "description": "메타데이터 수정 테스트"
+}
+
+### 프로젝트 스택 수정
+PATCH {{host}}/projects/{{projectId}}/stacks
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "fieldIds": ["field_backend", "field_database"],
+  "stackIds": ["stack_spring", "stack_postgresql"],
+  "dependencyIds": ["dep_spring_security", "dep_spring_data_jpa"]
+}
+
+### 프로젝트 zip 다운로드 URL 발급
+POST {{host}}/projects/{{projectId}}/download
+Authorization: Bearer {{accessToken}}
+
+### 프로젝트 삭제
+DELETE {{host}}/projects/{{projectId}}
+Authorization: Bearer {{accessToken}}

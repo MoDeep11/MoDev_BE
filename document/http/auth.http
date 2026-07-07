@@ -1,0 +1,46 @@
+@host = http://127.0.0.1:9999
+@email = http-test-user@example.com
+@password = Password123!
+@verificationCode = 123456
+
+### 이메일 인증 코드 발송
+POST {{host}}/auth/email/send
+Content-Type: application/json
+
+{
+  "email": "{{email}}"
+}
+
+### 이메일 인증 확인
+POST {{host}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "code": "{{verificationCode}}"
+}
+
+### 회원가입
+POST {{host}}/auth/signup
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "passwordConfirm": "{{password}}"
+}
+
+### 로그인
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 액세스 토큰 및 리프레시 토큰 재발급
+POST {{host}}/auth/token/refresh
+
+### 로그아웃
+POST {{host}}/auth/logout

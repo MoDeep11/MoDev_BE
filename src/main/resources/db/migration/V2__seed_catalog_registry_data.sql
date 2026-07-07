@@ -1,10 +1,10 @@
-INSERT INTO fields (public_id, name, description, icon_url)
+INSERT INTO fields (public_id, name, description, icon_url, created_at, updated_at)
 VALUES
-    ('field_backend', 'Backend', '서버 애플리케이션과 API 개발', 'https://cdn.example.com/icons/backend.svg'),
-    ('field_frontend', 'Frontend', '웹 UI와 클라이언트 애플리케이션 개발', 'https://cdn.example.com/icons/frontend.svg'),
-    ('field_database', 'Database', '데이터 저장소와 캐시 구성', 'https://cdn.example.com/icons/database.svg'),
-    ('field_devops', 'DevOps', '배포, 운영, 인프라 자동화', 'https://cdn.example.com/icons/devops.svg'),
-    ('field_ai', 'AI', 'AI 애플리케이션과 모델 연동', 'https://cdn.example.com/icons/ai.svg')
+    ('field_backend', 'Backend', '서버 애플리케이션과 API 개발', 'https://cdn.example.com/icons/backend.svg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('field_frontend', 'Frontend', '웹 UI와 클라이언트 애플리케이션 개발', 'https://cdn.example.com/icons/frontend.svg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('field_database', 'Database', '데이터 저장소와 캐시 구성', 'https://cdn.example.com/icons/database.svg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('field_devops', 'DevOps', '배포, 운영, 인프라 자동화', 'https://cdn.example.com/icons/devops.svg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('field_ai', 'AI', 'AI 애플리케이션과 모델 연동', 'https://cdn.example.com/icons/ai.svg', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (public_id) DO NOTHING;
 
 INSERT INTO tech_stacks (
@@ -17,7 +17,9 @@ INSERT INTO tech_stacks (
     icon_url,
     registry_type,
     registry_identifier,
-    registry_auto_sync
+    registry_auto_sync,
+    created_at,
+    updated_at
 )
 SELECT seed.public_id,
        fields.id,
@@ -28,7 +30,9 @@ SELECT seed.public_id,
        seed.icon_url,
        seed.registry_type,
        seed.registry_identifier,
-       seed.registry_auto_sync
+       seed.registry_auto_sync,
+       CURRENT_TIMESTAMP,
+       CURRENT_TIMESTAMP
 FROM (
     VALUES
         ('stack_spring', 'field_backend', 'Spring Boot', 'Kotlin/Java 기반 백엔드 애플리케이션 프레임워크', '3.5.0', 'FRAMEWORK', 'https://cdn.example.com/icons/spring.svg', 'MAVEN_CENTRAL', 'org.springframework.boot:spring-boot-starter-web', TRUE),
@@ -51,8 +55,8 @@ FROM (
 JOIN fields ON fields.public_id = seed.field_public_id
 ON CONFLICT (public_id) DO NOTHING;
 
-INSERT INTO field_stack_mappings (field_id, tech_stack_id)
-SELECT fields.id, tech_stacks.id
+INSERT INTO field_stack_mappings (field_id, tech_stack_id, created_at, updated_at)
+SELECT fields.id, tech_stacks.id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM tech_stacks
 JOIN fields ON fields.id = tech_stacks.field_id
 WHERE tech_stacks.public_id IN (
@@ -85,7 +89,9 @@ INSERT INTO dependencies (
     document_url,
     registry_type,
     registry_identifier,
-    registry_auto_sync
+    registry_auto_sync,
+    created_at,
+    updated_at
 )
 SELECT seed.public_id,
        tech_stacks.id,
@@ -96,7 +102,9 @@ SELECT seed.public_id,
        seed.document_url,
        seed.registry_type,
        seed.registry_identifier,
-       seed.registry_auto_sync
+       seed.registry_auto_sync,
+       CURRENT_TIMESTAMP,
+       CURRENT_TIMESTAMP
 FROM (
     VALUES
         ('dep_spring_security', 'stack_spring', 'Spring Security', 'Spring 기반 인증과 인가 지원', '6.5.0', TRUE, 'https://docs.spring.io/spring-security/reference/', 'MAVEN_CENTRAL', 'org.springframework.boot:spring-boot-starter-security', TRUE),

@@ -1,6 +1,6 @@
 services:
   app:
-    image: kusuri12/modev-be:latest
+    image: ${APP_IMAGE:-kusuri12/modev-be:latest}
     expose:
       - "8080"
     env_file:

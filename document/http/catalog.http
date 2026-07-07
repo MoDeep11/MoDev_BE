@@ -1,0 +1,27 @@
+@host = http://127.0.0.1:9999
+@fieldIds = field_backend,field_frontend
+@stackIds = stack_spring,stack_react
+@fieldKeyword = back
+@stackKeyword = spring
+@dependencyKeyword = security
+
+### 개발 분야 목록 조회
+GET {{host}}/catalog/fields
+
+### 기술 스택 목록 조회
+GET {{host}}/catalog/stacks?fieldIds={{fieldIds}}
+
+### 기술 스택 목록 조회 - 키워드 검색
+GET {{host}}/catalog/stacks?fieldIds={{fieldIds}}&keyword={{stackKeyword}}
+
+### 의존성 목록 조회
+GET {{host}}/catalog/dependencies?stackIds={{stackIds}}
+
+### 의존성 목록 조회 - 키워드 검색
+GET {{host}}/catalog/dependencies?stackIds={{stackIds}}&keyword={{dependencyKeyword}}
+
+### 기술 스택 목록 조회 - 필수 파라미터 누락
+GET {{host}}/catalog/stacks
+
+### 의존성 목록 조회 - 필수 파라미터 누락
+GET {{host}}/catalog/dependencies

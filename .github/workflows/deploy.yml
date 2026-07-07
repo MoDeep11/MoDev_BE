@@ -46,6 +46,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Copy compose file
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT }}
+          source: "docker-compose.yml"
+          target: "~/app"
+
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -55,11 +65,7 @@ jobs:
           port: ${{ secrets.EC2_PORT }}
           script: |
             cd ~/app
-
-            git pull origin main
-
+            export APP_IMAGE=kusuri12/modev-be:${{ github.sha }}
             docker compose pull app
-
-            docker compose up -d
-
+            docker compose up -d app
             docker image prune -f
