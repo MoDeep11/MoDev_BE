@@ -131,7 +131,7 @@ class GlobalExceptionHandler(
         val userId = MDC.get("userId")
         val clientIp = MDC.get("clientIp")
 
-        log.error {
+        val errorLog =
             objectMapper.writeValueAsString(
                 ErrorLog(
                     event = event.name,
@@ -146,6 +146,11 @@ class GlobalExceptionHandler(
                     message = e.message,
                 ),
             )
+
+        if (event == LogEvent.UNEXPECTED_ERROR || errorCode.status.is5xxServerError) {
+            log.error(e) { errorLog }
+        } else {
+            log.warn { errorLog }
         }
     }
 
