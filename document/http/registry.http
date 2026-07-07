@@ -1,18 +1,24 @@
 @host = http://127.0.0.1:9999
+@accessToken = jwt.access.token
 @techStackPublicId = stack_spring
 @dependencyPublicId = dep_spring_security
 
 ### 기술 스택 레지스트리 버전 조회
 GET {{host}}/catalog/registry/versions?targetType=TECH_STACK&publicId={{techStackPublicId}}
+Authorization: Bearer {{accessToken}}
 
 ### 의존성 레지스트리 버전 조회
 GET {{host}}/catalog/registry/versions?targetType=DEPENDENCY&publicId={{dependencyPublicId}}
+Authorization: Bearer {{accessToken}}
 
 ### 기술 스택 최신 버전 동기화
 POST {{host}}/catalog/registry/sync?targetType=TECH_STACK&publicId={{techStackPublicId}}
+Authorization: Bearer {{accessToken}}
 
 ### 의존성 최신 버전 동기화
 POST {{host}}/catalog/registry/sync?targetType=DEPENDENCY&publicId={{dependencyPublicId}}
+Authorization: Bearer {{accessToken}}
 
 ### 레지스트리 자동 동기화 대상 전체 동기화
 POST {{host}}/catalog/registry/sync/all
+Authorization: Bearer {{accessToken}}
