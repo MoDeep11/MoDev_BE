@@ -4,6 +4,7 @@ import io.jsonwebtoken.JwtException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import modeep.modev.domain.auth.repository.AccessTokenBlacklistStore
 import org.slf4j.MDC
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -15,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
     private val jwtAuthenticationEntryPoint: JwtAuthenticationEntryPoint,
+    private val accessTokenBlacklistStore: AccessTokenBlacklistStore,
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -28,6 +30,10 @@ class JwtAuthenticationFilter(
         }
 
         try {
+            if (accessTokenBlacklistStore.exists(token)) {
+                throw JwtException("blacklisted access token")
+            }
+
             val principal = jwtTokenProvider.parseAccessToken(token)
             val userId = principal.userId
             val authentication =

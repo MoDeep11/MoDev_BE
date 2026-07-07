@@ -12,8 +12,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when`
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.core.ValueOperations
@@ -89,11 +89,8 @@ class SendEmailServiceTest {
             }
 
         assertEquals(AuthErrorCode.ALREADY_VERIFIED, exception.errorCode)
-        verify(valueOperations, never()).set(
-            eq("auth:email-verification:code:user@example.com"),
-            org.mockito.ArgumentMatchers.anyString(),
-            eq(Duration.ofMinutes(5)),
-        )
+        verify(valueOperations).get("auth:email-verification:verified:user@example.com")
+        verifyNoMoreInteractions(valueOperations)
     }
 
     private class RecordingMailService :

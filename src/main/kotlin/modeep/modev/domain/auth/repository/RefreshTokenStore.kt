@@ -42,6 +42,8 @@ class RefreshTokenStore(
         redisTemplate.delete(key(refreshToken))
     }
 
+    fun exists(refreshToken: String): Boolean = redisTemplate.hasKey(key(refreshToken)) == true
+
     private fun key(refreshToken: String): String = "$KEY_PREFIX${sha256(refreshToken)}"
 
     private fun sha256(value: String): String =

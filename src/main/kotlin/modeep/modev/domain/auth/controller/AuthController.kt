@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -117,10 +118,11 @@ class AuthController(
     @PostMapping("/logout")
     override fun logout(
         @CookieValue(name = REFRESH_TOKEN_COOKIE, defaultValue = "") refreshToken: String,
+        @RequestHeader(name = "Authorization", required = false) authorization: String?,
         response: HttpServletResponse,
     ): ResponseEntity<ApiResponse> {
         try {
-            logoutService.execute(refreshToken)
+            logoutService.execute(refreshToken, resolveBearerToken(authorization))
         } finally {
             cookieService.clearRefreshTokenCookie(response)
         }
@@ -131,5 +133,21 @@ class AuthController(
                 data = null,
             ),
         )
+    }
+
+    private fun resolveBearerToken(authorization: String?): String? {
+        if (authorization.isNullOrBlank()) {
+            return null
+        }
+
+        if (!authorization.startsWith(BEARER_PREFIX, ignoreCase = true)) {
+            return null
+        }
+
+        return authorization.substring(BEARER_PREFIX.length).trim().takeIf { it.isNotBlank() }
+    }
+
+    private companion object {
+        const val BEARER_PREFIX = "Bearer "
     }
 }

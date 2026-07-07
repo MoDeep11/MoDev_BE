@@ -64,6 +64,11 @@ class JwtTokenProvider(
         )
     }
 
+    fun getRemainingExpirationMillis(token: String): Long {
+        val expiration = parseClaims(token).expiration.toInstant()
+        return expiration.toEpochMilli() - Instant.now().toEpochMilli()
+    }
+
     fun parseRefreshToken(token: String): String {
         val claims =
             try {

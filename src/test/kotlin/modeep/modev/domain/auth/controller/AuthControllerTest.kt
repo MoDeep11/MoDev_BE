@@ -51,10 +51,10 @@ class AuthControllerTest {
     fun `logout deletes refresh token and expires cookies`() {
         val servletResponse = mock(HttpServletResponse::class.java)
 
-        val response = controller.logout("refresh-token", servletResponse)
+        val response = controller.logout("refresh-token", "Bearer access-token", servletResponse)
         val body = requireNotNull(response.body)
 
-        verify(logoutService).execute("refresh-token")
+        verify(logoutService).execute("refresh-token", "access-token")
         assertEquals(HttpStatus.OK, response.statusCode)
         assertTrue(body.success)
         assertNull(body.data)

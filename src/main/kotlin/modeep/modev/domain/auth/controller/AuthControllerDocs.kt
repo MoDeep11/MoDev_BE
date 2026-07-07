@@ -19,6 +19,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
 
 @Tag(name = "Auth", description = "인증 관련 API")
@@ -176,6 +177,8 @@ interface AuthControllerDocs {
     fun logout(
         @Parameter(hidden = true)
         @CookieValue(name = "refresh_token", defaultValue = "") refreshToken: String,
+        @Parameter(hidden = true)
+        @RequestHeader(name = "Authorization", required = false) authorization: String?,
         @Parameter(hidden = true) response: HttpServletResponse,
     ): ResponseEntity<ApiResponse>
 }
