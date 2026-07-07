@@ -37,9 +37,8 @@ class GlobalExceptionHandler(
         e: BusinessException,
         request: HttpServletRequest,
     ): ResponseEntity<ApiResponse> {
-        logException(LogEvent.BUSINESS_ERROR, e, request)
-
         val errorCode: ErrorCode = e.errorCode
+        logException(LogEvent.BUSINESS_ERROR, errorCode, e, request)
 
         return errorResponse(errorCode)
     }
@@ -59,7 +58,7 @@ class GlobalExceptionHandler(
         e: Exception,
         request: HttpServletRequest,
     ): ResponseEntity<ApiResponse> {
-        logException(LogEvent.BUSINESS_ERROR, e, request)
+        logException(LogEvent.BUSINESS_ERROR, GlobalErrorCode.VALIDATION_ERROR, e, request)
 
         return errorResponse(GlobalErrorCode.VALIDATION_ERROR)
     }
@@ -73,7 +72,7 @@ class GlobalExceptionHandler(
         e: Exception,
         request: HttpServletRequest,
     ): ResponseEntity<ApiResponse> {
-        logException(LogEvent.BUSINESS_ERROR, e, request)
+        logException(LogEvent.BUSINESS_ERROR, GlobalErrorCode.NOT_FOUND, e, request)
 
         return errorResponse(GlobalErrorCode.NOT_FOUND)
     }
@@ -84,7 +83,7 @@ class GlobalExceptionHandler(
         e: HttpRequestMethodNotSupportedException,
         request: HttpServletRequest,
     ): ResponseEntity<ApiResponse> {
-        logException(LogEvent.BUSINESS_ERROR, e, request)
+        logException(LogEvent.BUSINESS_ERROR, GlobalErrorCode.METHOD_NOT_ALLOWED, e, request)
 
         return errorResponse(GlobalErrorCode.METHOD_NOT_ALLOWED)
     }
@@ -95,7 +94,7 @@ class GlobalExceptionHandler(
         e: HttpMediaTypeNotAcceptableException,
         request: HttpServletRequest,
     ): ResponseEntity<ApiResponse> {
-        logException(LogEvent.BUSINESS_ERROR, e, request)
+        logException(LogEvent.BUSINESS_ERROR, GlobalErrorCode.NOT_ACCEPTABLE, e, request)
 
         return errorResponse(GlobalErrorCode.NOT_ACCEPTABLE)
     }
@@ -106,7 +105,7 @@ class GlobalExceptionHandler(
         e: HttpMediaTypeNotSupportedException,
         request: HttpServletRequest,
     ): ResponseEntity<ApiResponse> {
-        logException(LogEvent.BUSINESS_ERROR, e, request)
+        logException(LogEvent.BUSINESS_ERROR, GlobalErrorCode.UNSUPPORTED_MEDIA_TYPE, e, request)
 
         return errorResponse(GlobalErrorCode.UNSUPPORTED_MEDIA_TYPE)
     }
@@ -117,13 +116,14 @@ class GlobalExceptionHandler(
         e: Exception,
         request: HttpServletRequest,
     ): ResponseEntity<ApiResponse> {
-        logException(LogEvent.UNEXPECTED_ERROR, e, request)
+        logException(LogEvent.UNEXPECTED_ERROR, GlobalErrorCode.INTERNAL_ERROR, e, request)
 
         return errorResponse(GlobalErrorCode.INTERNAL_ERROR)
     }
 
     private fun logException(
         event: LogEvent,
+        errorCode: ErrorCode,
         e: Exception,
         request: HttpServletRequest,
     ) {
@@ -135,6 +135,7 @@ class GlobalExceptionHandler(
             objectMapper.writeValueAsString(
                 ErrorLog(
                     event = event.name,
+                    errorCode = errorCode.name,
                     traceId = traceId,
                     userId = userId,
                     clientIp = clientIp,

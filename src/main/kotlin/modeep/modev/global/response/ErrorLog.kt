@@ -2,6 +2,7 @@ package modeep.modev.global.response
 
 data class ErrorLog(
     val event: String,
+    val errorCode: String,
     val traceId: String?,
     val userId: String?,
     val clientIp: String?,
