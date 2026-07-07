@@ -49,7 +49,11 @@ class SecurityConfig(
                     .csrfTokenRepository(csrfTokenRepository)
                     .csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
                     .ignoringRequestMatchers(
+                        pathMatcher.matcher(HttpMethod.POST, "/auth/signup"),
+                        pathMatcher.matcher(HttpMethod.POST, "/auth/login"),
                         pathMatcher.matcher(HttpMethod.POST, "/auth/token/refresh"),
+                        pathMatcher.matcher(HttpMethod.POST, "/auth/email/send"),
+                        pathMatcher.matcher(HttpMethod.POST, "/auth/email/verify"),
                         pathMatcher.matcher(HttpMethod.POST, "/auth/logout"),
                     )
             }
