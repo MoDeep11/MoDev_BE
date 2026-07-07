@@ -46,14 +46,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Copy compose file
+      - name: Copy deploy configs
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT }}
-          source: "docker-compose.yml"
+          source: |
+            docker-compose.yml
+            nginx/
           target: "~/app"
 
       - name: Deploy to EC2
