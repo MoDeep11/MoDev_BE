@@ -131,7 +131,7 @@ class GlobalExceptionHandler(
         val userId = MDC.get("userId")
         val clientIp = MDC.get("clientIp")
 
-        log.error(e) {
+        log.error {
             objectMapper.writeValueAsString(
                 ErrorLog(
                     event = event.name,

@@ -17,7 +17,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.csrf.CsrfToken
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
-import org.springframework.security.web.util.matcher.RequestMatcher
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.filter.OncePerRequestFilter
 
@@ -44,10 +44,14 @@ class SecurityConfig(
 
         http
             .csrf {
+                val pathMatcher = PathPatternRequestMatcher.withDefaults()
                 it
                     .csrfTokenRepository(csrfTokenRepository)
                     .csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
-                    .requireCsrfProtectionMatcher(RequestMatcher { false })
+                    .ignoringRequestMatchers(
+                        pathMatcher.matcher(HttpMethod.POST, "/auth/token/refresh"),
+                        pathMatcher.matcher(HttpMethod.POST, "/auth/logout"),
+                    )
             }
             .cors {
                 it.configurationSource(corsConfigurationSource)
