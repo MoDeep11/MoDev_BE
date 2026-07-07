@@ -68,6 +68,7 @@ class SignupServiceTest {
 
         assertEquals("user@example.com", response.user.email)
         assertEquals("ACTIVE", response.user.status)
+        assertEquals("USER", response.user.role)
         assertEquals(3600, response.expiresIn)
         assertTrue(response.accessToken.isNotBlank())
         assertTrue(refreshToken.isNotBlank())

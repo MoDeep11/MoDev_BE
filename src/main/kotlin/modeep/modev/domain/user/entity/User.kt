@@ -24,9 +24,13 @@ class User(
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     var status: UserStatus = UserStatus.UNVERIFIED,
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    var role: UserRole = UserRole.USER,
     @Column(nullable = true)
     val deletedAt: Instant? = null,
 ) : BaseEntity() {
+    @Deprecated("Not used anymore, use `UserStatus.ACTIVE` instead")
     fun verifyEmail() {
         status = UserStatus.ACTIVE
     }

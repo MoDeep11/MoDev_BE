@@ -23,7 +23,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ProjectControllerTest {
-    private val user = JwtPrincipal(userId = "1", status = "ACTIVE")
+    private val user = JwtPrincipal(userId = "1", status = "ACTIVE", role = "USER")
     private val userId = 1L
     private val updateProjectStacksService = mock(UpdateProjectStacksService::class.java)
     private val downloadStructureService = mock(DownloadStructureService::class.java)

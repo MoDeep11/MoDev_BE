@@ -35,12 +35,14 @@ class JwtTokenProviderTest {
         assertEquals("1", claims.subject)
         assertEquals("access", claims["type"])
         assertEquals("ACTIVE", claims["status"])
+        assertEquals("USER", claims["role"])
         assertTrue(claims.expiration.time - claims.issuedAt.time in 3_599_000..3_600_000)
         assertEquals(3600, provider.accessTokenExpiresInSeconds)
 
         val principal = provider.parseAccessToken(token)
         assertEquals("1", principal.userId)
         assertEquals("ACTIVE", principal.status)
+        assertEquals("USER", principal.role)
     }
 
     @Test

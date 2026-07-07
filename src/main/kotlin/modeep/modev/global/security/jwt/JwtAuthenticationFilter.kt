@@ -34,7 +34,7 @@ class JwtAuthenticationFilter(
                 UsernamePasswordAuthenticationToken(
                     principal,
                     null,
-                    listOf(SimpleGrantedAuthority("ROLE_USER")),
+                    listOf(SimpleGrantedAuthority("ROLE_${principal.role}")),
                 )
 
             SecurityContextHolder.getContext().authentication = authentication

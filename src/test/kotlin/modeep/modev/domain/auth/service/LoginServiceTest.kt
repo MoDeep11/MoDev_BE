@@ -58,6 +58,7 @@ class LoginServiceTest {
         assertEquals(1L, response.user.userId)
         assertEquals("user@example.com", response.user.email)
         assertEquals("ACTIVE", response.user.status)
+        assertEquals("USER", response.user.role)
         assertEquals("refresh-token", refreshToken)
         verify(refreshTokenStore)
             .save(

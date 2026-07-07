@@ -12,6 +12,7 @@ data class LoginUserResponse(
     val userId: Long,
     val email: String,
     val status: String,
+    val role: String,
 ) {
     companion object {
         fun from(user: User) =
@@ -19,6 +20,7 @@ data class LoginUserResponse(
                 userId = user.id,
                 email = user.email,
                 status = user.status.name,
+                role = user.role.name,
             )
     }
 }

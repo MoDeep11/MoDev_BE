@@ -17,8 +17,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.csrf.CsrfToken
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
-import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
-import org.springframework.security.web.util.matcher.OrRequestMatcher
+import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.filter.OncePerRequestFilter
 
@@ -48,14 +47,7 @@ class SecurityConfig(
                 it
                     .csrfTokenRepository(csrfTokenRepository)
                     .csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
-                    .requireCsrfProtectionMatcher(
-                        OrRequestMatcher(
-                            PathPatternRequestMatcher.withDefaults()
-                                .matcher(HttpMethod.POST, "/auth/token/refresh"),
-                            PathPatternRequestMatcher.withDefaults()
-                                .matcher(HttpMethod.POST, "/auth/logout"),
-                        ),
-                    )
+                    .requireCsrfProtectionMatcher(RequestMatcher { false })
             }
             .cors {
                 it.configurationSource(corsConfigurationSource)
@@ -92,6 +84,7 @@ class SecurityConfig(
                         "/projects/structures",
                         "/projects/structures/**",
                     ).permitAll()
+                    .requestMatchers("/catalog/registry/**").hasRole("ADMIN")
                     .anyRequest().authenticated()
             }
             .formLogin { it.disable() }

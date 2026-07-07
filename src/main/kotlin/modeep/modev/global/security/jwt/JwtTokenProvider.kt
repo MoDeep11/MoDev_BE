@@ -58,6 +58,9 @@ class JwtTokenProvider(
             status =
                 (claims["status"] as? String)
                     ?: throw JwtException("missing or invalid status claim"),
+            role =
+                (claims["role"] as? String)
+                    ?: throw JwtException("missing or invalid role claim"),
         )
     }
 
@@ -92,6 +95,7 @@ class JwtTokenProvider(
             .subject(user.id.toString())
             .claim("type", tokenType.value)
             .claim("status", user.status.name)
+            .claim("role", user.role.name)
             .id(UUID.randomUUID().toString())
             .issuedAt(Date.from(issuedAt))
             .expiration(Date.from(issuedAt.plusMillis(expirationMillis)))
