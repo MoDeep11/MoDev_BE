@@ -5,7 +5,6 @@ import modeep.modev.global.ratelimit.RateLimitFilter
 import modeep.modev.global.security.handler.CustomAccessDeniedHandler
 import modeep.modev.global.security.jwt.JwtAuthenticationEntryPoint
 import modeep.modev.global.security.jwt.JwtAuthenticationFilter
-import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory.disable
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -43,14 +42,14 @@ class SecurityConfig(
 
         http
             .csrf {
-                disable()
-//                val pathMatcher = PathPatternRequestMatcher.withDefaults()
-//                it
-//                    .csrfTokenRepository(csrfTokenRepository)
-//                    .csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
-//                    .requireCsrfProtectionMatcher(
-//                        pathMatcher.matcher(HttpMethod.POST, "/auth/token/refresh"),
-//                    )
+                it.disable()
+                // val pathMatcher = PathPatternRequestMatcher.withDefaults()
+                // it
+                //     .csrfTokenRepository(csrfTokenRepository)
+                //     .csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
+                //     .requireCsrfProtectionMatcher(
+                //         pathMatcher.matcher(HttpMethod.POST, "/auth/token/refresh"),
+                //     )
             }
             .cors {
                 it.configurationSource(corsConfigurationSource)
