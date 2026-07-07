@@ -5,6 +5,7 @@ import modeep.modev.global.ratelimit.RateLimitFilter
 import modeep.modev.global.security.handler.CustomAccessDeniedHandler
 import modeep.modev.global.security.jwt.JwtAuthenticationEntryPoint
 import modeep.modev.global.security.jwt.JwtAuthenticationFilter
+import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory.disable
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,8 +17,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 import org.springframework.security.web.csrf.CsrfFilter
 import org.springframework.security.web.csrf.CsrfToken
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler
-import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.filter.OncePerRequestFilter
 
@@ -44,18 +43,14 @@ class SecurityConfig(
 
         http
             .csrf {
-                val pathMatcher = PathPatternRequestMatcher.withDefaults()
-                it
-                    .csrfTokenRepository(csrfTokenRepository)
-                    .csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
-                    .ignoringRequestMatchers(
-                        pathMatcher.matcher(HttpMethod.POST, "/auth/signup"),
-                        pathMatcher.matcher(HttpMethod.POST, "/auth/login"),
-                        pathMatcher.matcher(HttpMethod.POST, "/auth/token/refresh"),
-                        pathMatcher.matcher(HttpMethod.POST, "/auth/email/send"),
-                        pathMatcher.matcher(HttpMethod.POST, "/auth/email/verify"),
-                        pathMatcher.matcher(HttpMethod.POST, "/auth/logout"),
-                    )
+                disable()
+//                val pathMatcher = PathPatternRequestMatcher.withDefaults()
+//                it
+//                    .csrfTokenRepository(csrfTokenRepository)
+//                    .csrfTokenRequestHandler(CsrfTokenRequestAttributeHandler())
+//                    .requireCsrfProtectionMatcher(
+//                        pathMatcher.matcher(HttpMethod.POST, "/auth/token/refresh"),
+//                    )
             }
             .cors {
                 it.configurationSource(corsConfigurationSource)

@@ -2,6 +2,8 @@ package modeep.modev.domain.auth.service
 
 import modeep.modev.domain.auth.controller.dto.request.SendEmailRequest
 import modeep.modev.global.config.properties.MailProperties
+import modeep.modev.global.exception.BusinessException
+import modeep.modev.global.exception.error.AuthErrorCode
 import modeep.modev.global.mail.EmailTemplateRenderer
 import modeep.modev.global.mail.MailMessage
 import modeep.modev.global.mail.MailService
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.springframework.data.redis.core.RedisTemplate
@@ -18,6 +21,7 @@ import org.springframework.mail.javamail.JavaMailSender
 import java.time.Duration
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class SendEmailServiceTest {
@@ -46,10 +50,11 @@ class SendEmailServiceTest {
 
     @Test
     fun `stores verification code and sends rendered mail`() {
+        `when`(valueOperations.get("auth:email-verification:verified:user@example.com")).thenReturn(null)
+
         service.execute(SendEmailRequest(" User@Example.com "))
 
         val codeCaptor = ArgumentCaptor.forClass(String::class.java)
-        verify(redisTemplate).delete("auth:email-verification:verified:user@example.com")
         verify(valueOperations).set(
             eq("auth:email-verification:code:user@example.com"),
             codeCaptor.capture(),
@@ -71,6 +76,23 @@ class SendEmailServiceTest {
                     }.toMap(),
             ),
             sentMessage.body,
+        )
+    }
+
+    @Test
+    fun `rejects sending verification code for already verified email`() {
+        `when`(valueOperations.get("auth:email-verification:verified:user@example.com")).thenReturn("true")
+
+        val exception =
+            assertFailsWith<BusinessException> {
+                service.execute(SendEmailRequest("user@example.com"))
+            }
+
+        assertEquals(AuthErrorCode.ALREADY_VERIFIED, exception.errorCode)
+        verify(valueOperations, never()).set(
+            eq("auth:email-verification:code:user@example.com"),
+            org.mockito.ArgumentMatchers.anyString(),
+            eq(Duration.ofMinutes(5)),
         )
     }
 
