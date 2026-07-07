@@ -53,9 +53,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: ${{ secrets.EC2_PORT }}
-          source: |
-            docker-compose.yml
-            nginx/
+          source: "docker-compose.yml,nginx/default.conf"
           target: "~/app"
 
       - name: Deploy to EC2
