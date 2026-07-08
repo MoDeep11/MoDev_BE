@@ -7,7 +7,6 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.Lob
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import modeep.modev.domain.structure.entity.vo.StructureFileType
@@ -39,7 +38,6 @@ class StructureFile(
     val path: String,
     @Column(nullable = false)
     var depth: Int,
-    @Lob
     @Column(nullable = true, columnDefinition = "TEXT")
     var content: String? = null,
     @Column(nullable = false, length = 100)

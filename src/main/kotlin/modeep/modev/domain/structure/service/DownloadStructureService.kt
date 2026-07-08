@@ -14,6 +14,7 @@ import modeep.modev.global.zip.ZipArchiveEntry
 import modeep.modev.global.zip.ZipArchiveEntryType
 import modeep.modev.global.zip.ZipArchiveService
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -27,6 +28,7 @@ class DownloadStructureService(
     private val zipArchiveService: ZipArchiveService,
     private val s3StorageService: S3StorageService,
 ) {
+    @Transactional(readOnly = true)
     fun issueDownloadUrl(
         projectId: UUID,
         userId: Long? = null,
