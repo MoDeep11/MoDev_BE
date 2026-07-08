@@ -92,9 +92,9 @@ class SecurityConfig(
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .addFilterAfter(CsrfCookieFilter(), CsrfFilter::class.java)
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter::class.java)
-            .addFilterAfter(mdcFilter, JwtAuthenticationFilter::class.java)
-            .addFilterAfter(rateLimitFilter, MdcFilter::class.java)
+            .addFilterBefore(mdcFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .addFilterAfter(jwtFilter, MdcFilter::class.java)
+            .addFilterAfter(rateLimitFilter, JwtAuthenticationFilter::class.java)
 
         return http.build()
     }

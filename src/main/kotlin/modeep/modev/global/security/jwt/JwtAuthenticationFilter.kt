@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import modeep.modev.domain.auth.repository.AccessTokenBlacklistStore
+import modeep.modev.global.filter.MdcFilter
 import org.slf4j.MDC
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -45,6 +46,7 @@ class JwtAuthenticationFilter(
 
             SecurityContextHolder.getContext().authentication = authentication
             MDC.put("userId", userId)
+            request.setAttribute(MdcFilter.USER_ID_ATTRIBUTE, userId)
             filterChain.doFilter(request, response)
         } catch (exception: JwtException) {
             SecurityContextHolder.clearContext()
