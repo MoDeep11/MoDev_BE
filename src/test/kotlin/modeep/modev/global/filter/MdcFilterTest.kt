@@ -1,5 +1,6 @@
 package modeep.modev.global.filter
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.FilterChain
 import jakarta.servlet.ServletRequest
 import jakarta.servlet.ServletResponse
@@ -14,7 +15,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class MdcFilterTest {
-    private val filter = MdcFilter()
+    private val filter = MdcFilter(ObjectMapper())
 
     @AfterTest
     fun tearDown() {

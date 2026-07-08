@@ -1,16 +1,20 @@
 package modeep.modev.global.filter
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import modeep.modev.global.response.InfoLog
 import org.slf4j.MDC
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import java.util.UUID
 
 @Component
-class MdcFilter : OncePerRequestFilter() {
+class MdcFilter(
+    private val objectMapper: ObjectMapper,
+) : OncePerRequestFilter() {
     private val log = KotlinLogging.logger {}
 
     override fun doFilterInternal(
@@ -29,13 +33,25 @@ class MdcFilter : OncePerRequestFilter() {
             filterChain.doFilter(request, response)
         } finally {
             val userId = request.getAttribute(USER_ID_ATTRIBUTE) as? String
+            val traceId = MDC.get("traceId")
+            val clientIp = MDC.get("clientIp")
             if (!userId.isNullOrBlank()) {
                 MDC.put("userId", userId)
             }
-            log.info {
-                "http_request method=${request.method} path=${request.requestURI.withQueryString(request.queryString)} " +
-                    "status=${response.status} durationMs=${System.currentTimeMillis() - startedAt}"
-            }
+            val infoLog =
+                objectMapper.writeValueAsString(
+                    InfoLog(
+                        traceId = traceId,
+                        userId = userId,
+                        clientIp = clientIp,
+                        method = request.method,
+                        path = request.requestURI,
+                        query = request.requestURI.withQueryString(request.queryString),
+                        status = response.status.toString(),
+                        durationMs = (System.currentTimeMillis() - startedAt).toString(),
+                    ),
+                )
+            log.info { infoLog }
             MDC.clear()
         }
     }
