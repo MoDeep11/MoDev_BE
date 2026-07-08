@@ -15,7 +15,7 @@ server:
 # Logging
 logging:
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{userId:-},%X{clientIp:-},%X{requestUri:-}] %logger{36} - %msg%n%nopex"
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%thread]){magenta} %clr(%-5level) %clr([%X{traceId:-},%X{userId:-},%X{clientIp:-},%X{requestUri:-}]){cyan} %clr(%logger{36}){blue} - %msg%n%nopex"
   level:
     root: WARN
     modeep.modev: INFO

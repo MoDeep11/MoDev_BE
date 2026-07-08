@@ -1,4 +1,8 @@
 spring:
+  output:
+    ansi:
+      enabled: ALWAYS
+
   config:
     import: optional:file:.env[.properties]
 
