@@ -13,7 +13,9 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.time.OffsetDateTime
@@ -69,19 +71,52 @@ class StructureControllerTest {
     @Test
     fun `issues existing project zip download url`() {
         val projectId = UUID.randomUUID()
+        val request =
+            MockHttpServletRequest("POST", "/projects/structures/$projectId/download").apply {
+                scheme = "http"
+                serverName = "localhost"
+                serverPort = 9999
+            }
         val serviceResponse =
             DownloadStructureResponse(
-                downloadUrl = "https://storage.example.com/my-project.zip?token=abc",
+                downloadUrl = "http://localhost:9999/projects/structures/$projectId/download",
                 expiresAt = OffsetDateTime.parse("2025-05-26T12:00:00Z"),
                 fileName = "my-project_20250526.zip",
             )
-        `when`(downloadStructureService.issueDownloadUrl(projectId)).thenReturn(serviceResponse)
+        `when`(
+            downloadStructureService.issueDirectDownloadUrl(
+                projectId = projectId,
+                downloadUrl = "http://localhost:9999/projects/structures/$projectId/download",
+            ),
+        ).thenReturn(serviceResponse)
 
-        val response = controller.issueDownloadUrl(projectId)
+        val response = controller.issueDownloadUrl(projectId, request)
 
         assertTrue(response.body!!.success)
         assertEquals(serviceResponse, response.body!!.data)
         assertNull(response.body!!.error)
-        verify(downloadStructureService).issueDownloadUrl(projectId)
+        verify(downloadStructureService).issueDirectDownloadUrl(
+            projectId = projectId,
+            downloadUrl = "http://localhost:9999/projects/structures/$projectId/download",
+        )
+    }
+
+    @Test
+    fun `downloads existing project zip directly`() {
+        val projectId = UUID.randomUUID()
+        `when`(downloadStructureService.createDownloadZip(projectId))
+            .thenReturn(
+                modeep.modev.domain.structure.service.StructureZip(
+                    fileName = "my-project_20250526.zip",
+                    content = "zip-content".toByteArray(),
+                ),
+            )
+
+        val response = controller.downloadZip(projectId)
+
+        assertEquals(HttpStatus.OK, response.statusCode)
+        assertEquals("attachment; filename=\"my-project_20250526.zip\"", response.headers.getFirst(HttpHeaders.CONTENT_DISPOSITION))
+        assertEquals("zip-content", response.body!!.toString(Charsets.UTF_8))
+        verify(downloadStructureService).createDownloadZip(projectId)
     }
 }

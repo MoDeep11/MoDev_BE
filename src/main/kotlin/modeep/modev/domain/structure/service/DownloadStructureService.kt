@@ -33,30 +33,61 @@ class DownloadStructureService(
         projectId: UUID,
         userId: Long? = null,
     ): DownloadStructureResponse {
-        val project = findByProjectId(projectId)
-        userId?.let(project::validateOwner)
-
+        val zip = createDownloadZip(projectId, userId)
         val expiration = Duration.ofHours(1)
         val expiresAt = OffsetDateTime.now(ZoneOffset.UTC).plus(expiration)
-        val fileName = "${project.projectName.toSafeFileName()}_${DateTimeFormatter.BASIC_ISO_DATE.format(expiresAt.toLocalDate())}.zip"
-        val objectKey = "$projectId/structures/downloads/$fileName"
-        val zip = createZip(projectId)
+        val objectKey = "$projectId/structures/downloads/${zip.fileName}"
 
         s3StorageService.upload(
             objectKey = objectKey,
-            fileName = fileName,
+            fileName = zip.fileName,
             contentType = ZIP_CONTENT_TYPE,
-            content = zip,
+            content = zip.content,
         )
 
         return DownloadStructureResponse(
             downloadUrl = s3StorageService.createPresignedGetUrl(objectKey, expiration),
             expiresAt = expiresAt,
-            fileName = fileName,
+            fileName = zip.fileName,
         )
     }
 
-    fun findByProjectId(projectId: UUID): Project {
+    @Transactional(readOnly = true)
+    fun issueDirectDownloadUrl(
+        projectId: UUID,
+        downloadUrl: String,
+        userId: Long? = null,
+    ): DownloadStructureResponse {
+        val zip = createDownloadZip(projectId, userId)
+        val expiresAt = OffsetDateTime.now(ZoneOffset.UTC).plus(Duration.ofHours(1))
+
+        return DownloadStructureResponse(
+            downloadUrl = downloadUrl,
+            expiresAt = expiresAt,
+            fileName = zip.fileName,
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun createDownloadZip(
+        projectId: UUID,
+        userId: Long? = null,
+    ): StructureZip {
+        val project = findByProjectId(projectId)
+        userId?.let(project::validateOwner)
+
+        val fileName =
+            "${project.projectName.toSafeFileName()}_${DateTimeFormatter.BASIC_ISO_DATE.format(
+                OffsetDateTime.now(ZoneOffset.UTC).toLocalDate(),
+            )}.zip"
+
+        return StructureZip(
+            fileName = fileName,
+            content = createZip(projectId),
+        )
+    }
+
+    private fun findByProjectId(projectId: UUID): Project {
         val project =
             projectRepository.findByIdAndDeletedAtIsNull(projectId)
                 ?: throw BusinessException(ProjectErrorCode.PROJECT_NOT_FOUND)
@@ -103,3 +134,8 @@ class DownloadStructureService(
         const val ZIP_CONTENT_TYPE = "application/zip"
     }
 }
+
+data class StructureZip(
+    val fileName: String,
+    val content: ByteArray,
+)

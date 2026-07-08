@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import modeep.modev.domain.structure.controller.dto.request.GenerateStructureRequest
 import modeep.modev.global.response.ApiResponse
@@ -372,5 +373,7 @@ interface StructureControllerDocs {
     fun issueDownloadUrl(
         @Parameter(description = "프로젝트 생성 ID", example = "550e8400-e29b-41d4-a716-446655440000")
         @PathVariable projectId: UUID,
+        @Parameter(hidden = true)
+        request: HttpServletRequest,
     ): ResponseEntity<ApiResponse>
 }

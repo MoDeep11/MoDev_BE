@@ -1,5 +1,6 @@
 package modeep.modev.domain.structure.controller
 
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import modeep.modev.domain.structure.controller.dto.request.GenerateStructureRequest
 import modeep.modev.domain.structure.service.DownloadStructureService
@@ -8,6 +9,8 @@ import modeep.modev.domain.structure.service.GetStructureFileService
 import modeep.modev.domain.structure.service.GetStructureStatusService
 import modeep.modev.domain.structure.service.StreamStructureService
 import modeep.modev.global.response.ApiResponse
+import org.springframework.http.ContentDisposition
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -81,11 +84,34 @@ class StructureController(
     @PostMapping("/{projectId}/download")
     override fun issueDownloadUrl(
         @PathVariable projectId: UUID,
+        request: HttpServletRequest,
     ): ResponseEntity<ApiResponse> =
         ResponseEntity.ok(
             ApiResponse(
                 success = true,
-                data = downloadStructureService.issueDownloadUrl(projectId),
+                data =
+                    downloadStructureService.issueDirectDownloadUrl(
+                        projectId = projectId,
+                        downloadUrl = request.requestURL.toString(),
+                    ),
             ),
         )
+
+    @GetMapping("/{projectId}/download")
+    fun downloadZip(
+        @PathVariable projectId: UUID,
+    ): ResponseEntity<ByteArray> {
+        val zip = downloadStructureService.createDownloadZip(projectId)
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(
+                HttpHeaders.CONTENT_DISPOSITION,
+                ContentDisposition.attachment()
+                    .filename(zip.fileName)
+                    .build()
+                    .toString(),
+            )
+            .body(zip.content)
+    }
 }
