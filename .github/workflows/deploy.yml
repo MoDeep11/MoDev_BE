@@ -68,6 +68,7 @@ jobs:
           script: |
             cd ~/app
             export APP_IMAGE=kusuri12/modev-be:${{ github.sha }}
+            echo "Deploying image: $APP_IMAGE"
             docker compose pull app
-            docker compose up -d app
+            docker compose up -d --force-recreate app
             docker image prune -f
